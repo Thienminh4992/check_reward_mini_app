@@ -1,9 +1,10 @@
 export interface User {
     id: string
     telegram_id: number
-    telegram_name: string
+    telegram_name: string | null
     uid: string
     name: string
+    role: string
     available_point: number
     earned_point: number
     redeemed_point: number
@@ -22,4 +23,5 @@ export interface RewardHistoryItem {
 export interface UserDashboardResponse {
     user: User
     reward_history_items: RewardHistoryItem[]
+    volume?: unknown
 }

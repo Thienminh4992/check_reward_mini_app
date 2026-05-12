@@ -1,50 +1,101 @@
 import { withTransaction } from "@/lib/db";
+import { famRecordHasVerifiableFields, verifyFamUserMatch } from "@/lib/fam-verify";
+import { hashPassword, verifyPassword } from "@/lib/password";
 import { userRepository } from "@/lib/repository";
+import type { User } from "@/db/schema";
+import type { RewardHistoryItem } from "@/types/user";
+
+export type UidPasswordLoginResult =
+    | { status: "ok"; user: User }
+    | { status: "not_found" }
+    | { status: "wrong_password" }
+    | { status: "no_password" }
+    | { status: "telegram_mismatch" };
 
 export const userService = {
     // =========================
     // AUTH
     // =========================
-    async telegramLogin(telegramId: number) {
-        const user = await userRepository.getUserByTelegramId(telegramId);
-
-        if (!user) {
-            return {
-                exists: false,
-                user: null,
-            };
+    async loginWithUidPassword(
+        uid: string,
+        password: string,
+        telegramId: number
+    ): Promise<UidPasswordLoginResult> {
+        const row = await userRepository.getUserWithPasswordByUid(uid);
+        if (!row) {
+            return { status: "not_found" };
         }
-
-        return {
-            exists: true,
-            user,
-        };
+        if (!row.password_hash) {
+            return { status: "no_password" };
+        }
+        const valid = await verifyPassword(password, row.password_hash);
+        if (!valid) {
+            return { status: "wrong_password" };
+        }
+        if (row.telegram_id !== telegramId) {
+            return { status: "telegram_mismatch" };
+        }
+        const { password_hash: _h, ...safe } = row;
+        return { status: "ok", user: safe };
     },
 
-    async telegramRegister(payload: {
+    async registerWithFamVerification(payload: {
         telegram_id: number;
-        telegram_name?: string;
+        telegram_name: string | null;
         uid: string;
-        name?: string;
+        email: string;
+        telegram_account: string;
+        discord_account: string;
+        password: string;
     }) {
-        const existed = await userRepository.getUserByTelegramId(payload.telegram_id);
+        const uid = payload.uid.trim();
 
-        if (existed) {
-            throw new Error("User already exists");
+        const byUid = await userRepository.getByUid(uid);
+        if (byUid) {
+            throw new Error("USER_EXISTS");
         }
 
-        const user = await userRepository.createUser({
+        const sameTg = await userRepository.getUserByTelegramId(
+            payload.telegram_id
+        );
+        if (sameTg) {
+            throw new Error("TELEGRAM_TAKEN");
+        }
+
+        const fam = await userRepository.getFamUserByUid(uid);
+        if (!fam) {
+            throw new Error("FAM_NOT_FOUND");
+        }
+        if (!famRecordHasVerifiableFields(fam)) {
+            throw new Error("FAM_NOT_VERIFIABLE");
+        }
+        if (
+            !verifyFamUserMatch(fam, {
+                email: payload.email,
+                telegram_account: payload.telegram_account,
+                discord_account: payload.discord_account,
+            })
+        ) {
+            throw new Error("FAM_MISMATCH");
+        }
+
+        const password_hash = await hashPassword(payload.password);
+        const displayName = payload.telegram_account.trim() || uid;
+
+        return userRepository.createUser({
             telegram_id: payload.telegram_id,
             telegram_name: payload.telegram_name,
-            uid: payload.uid,
-            name: payload.name,
+            uid,
+            name: displayName,
             role: "user",
             earned_point: 0,
             redeemed_point: 0,
             available_point: 0,
+            password_hash,
+            email: payload.email.trim(),
+            telegram_account: payload.telegram_account.trim(),
+            discord_account: payload.discord_account.trim(),
         });
-
-        return user;
     },
 
     // =========================
@@ -61,9 +112,20 @@ export const userService = {
 
         const volume = await userRepository.getUserVolumeByUid(user.uid);
 
+        const reward_history_items: RewardHistoryItem[] = history.map((h) => ({
+            id: h.id,
+            name: h.description ?? h.source,
+            points_change: h.points_change,
+            description: h.description ?? "",
+            source: h.source,
+            status: "",
+            icon: "",
+        }));
+
         return {
             user,
             history,
+            reward_history_items,
             volume,
         };
     },

@@ -1,6 +1,20 @@
 import { PoolClient } from "pg";
 import { execute, query, queryOne } from "@/lib/db";
-import { Reward, User, RedeemRequest, UserPointsHistory } from "@/db/schema";
+import {
+    Reward,
+    User,
+    RedeemRequest,
+    UserPointsHistory,
+    FamUser,
+} from "@/db/schema";
+
+/** Không bao gồm password_hash — dùng cho API/client */
+const USER_SAFE_SQL = `
+  id, telegram_id, telegram_name, uid, name, role,
+  earned_point, redeemed_point, available_point,
+  email, telegram_account, discord_account,
+  created_at, updated_at
+`;
 
 export const userRepository = {
     // =========================
@@ -8,7 +22,23 @@ export const userRepository = {
     // =========================
     getByUid(uid: string, client?: PoolClient) {
         return queryOne<User>(
-            `SELECT * FROM users WHERE uid = $1`,
+            `SELECT ${USER_SAFE_SQL} FROM users WHERE uid = $1`,
+            [uid],
+            client
+        );
+    },
+
+    getUserWithPasswordByUid(uid: string, client?: PoolClient) {
+        return queryOne<User>(
+            `SELECT ${USER_SAFE_SQL}, password_hash FROM users WHERE uid = $1`,
+            [uid],
+            client
+        );
+    },
+
+    getFamUserByUid(uid: string, client?: PoolClient) {
+        return queryOne<FamUser>(
+            `SELECT uid, email, telegram_account, discord_account FROM fam_users WHERE uid = $1`,
             [uid],
             client
         );
@@ -16,7 +46,7 @@ export const userRepository = {
 
     getUserByTelegramId(telegramId: number, client?: PoolClient) {
         return queryOne<User>(
-            `SELECT * FROM users WHERE telegram_id = $1`,
+            `SELECT ${USER_SAFE_SQL} FROM users WHERE telegram_id = $1`,
             [telegramId],
             client
         );
@@ -24,7 +54,7 @@ export const userRepository = {
 
     getUserById(userId: string, client?: PoolClient) {
         return queryOne<User>(
-            `SELECT * FROM users WHERE id = $1`,
+            `SELECT ${USER_SAFE_SQL} FROM users WHERE id = $1`,
             [userId],
             client
         );
@@ -81,6 +111,10 @@ export const userRepository = {
         earned_point?: number;
         redeemed_point?: number;
         available_point?: number;
+        password_hash: string;
+        email?: string | null;
+        telegram_account?: string | null;
+        discord_account?: string | null;
     }, client?: PoolClient) {
         return queryOne<User>(
             `
@@ -92,10 +126,18 @@ export const userRepository = {
         role,
         earned_point,
         redeemed_point,
-        available_point
+        available_point,
+        password_hash,
+        email,
+        telegram_account,
+        discord_account
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
-      RETURNING *
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+      RETURNING
+        id, telegram_id, telegram_name, uid, name, role,
+        earned_point, redeemed_point, available_point,
+        email, telegram_account, discord_account,
+        created_at, updated_at
       `,
             [
                 user.telegram_id,
@@ -106,6 +148,10 @@ export const userRepository = {
                 user.earned_point ?? 0,
                 user.redeemed_point ?? 0,
                 user.available_point ?? 0,
+                user.password_hash,
+                user.email ?? null,
+                user.telegram_account ?? null,
+                user.discord_account ?? null,
             ],
             client
         );

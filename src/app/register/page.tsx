@@ -1,47 +1,62 @@
 "use client";
 
-import { Suspense, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
-import { registerUser } from "@/app/services/auth";
+import { registerFamAccount } from "@/app/services/auth";
 
 function RegisterContent() {
     const router = useRouter();
-    const searchParams = useSearchParams();
 
-    const telegram_id = searchParams.get("telegram_id");
-
+    const [initData, setInitData] = useState<string | null>(null);
+    const [email, setEmail] = useState("");
     const [uid, setUid] = useState("");
-    const [name, setName] = useState("");
+    const [telegramAccount, setTelegramAccount] = useState("");
+    const [discordAccount, setDiscordAccount] = useState("");
+    const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    useEffect(() => {
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+        setInitData(tg?.initData ?? null);
+    }, []);
 
     const handleSubmit = async () => {
-        if (!uid || !name) {
-            alert("Nhập đủ thông tin");
-            return;
-        }
+        setError(null);
 
-        if (!telegram_id) {
-            alert("Thiếu telegram_id");
+        if (
+            !email.trim() ||
+            !uid.trim() ||
+            !telegramAccount.trim() ||
+            !discordAccount.trim() ||
+            !password
+        ) {
+            setError("Vui lòng nhập đủ thông tin");
             return;
         }
 
         setLoading(true);
 
         try {
-            const res = await registerUser({
-                telegram_id: Number(telegram_id),
-                telegram_name: "",
-                uid,
-                name,
+            await registerFamAccount({
+                email: email.trim(),
+                uid: uid.trim(),
+                telegram_account: telegramAccount.trim(),
+                discord_account: discordAccount.trim(),
+                password,
+                initData,
             });
 
-            const user_id = res.user.id;
-
-            router.replace(`/home?user_id=${user_id}`);
+            router.replace("/home");
         } catch (err) {
-            console.error(err);
-            alert("Đăng ký thất bại");
+            const msg =
+                err instanceof Error ? err.message : "Đăng ký thất bại";
+            setError(msg);
         } finally {
             setLoading(false);
         }
@@ -51,33 +66,75 @@ function RegisterContent() {
         <div className="min-h-screen flex flex-col bg-gray-100">
             <Header />
 
-            <div className="flex-1 flex items-center justify-center px-4">
-                <div className="w-full max-w-sm bg-white p-6 rounded-2xl shadow-lg">
-                    <h1 className="text-2xl font-bold text-center mb-6">
+            <div className="flex-1 flex items-center justify-center px-4 pb-28 overflow-y-auto">
+                <div className="w-full max-w-sm bg-white p-6 rounded-2xl shadow-lg my-6">
+                    <h1 className="text-2xl font-bold text-center mb-2">
                         Đăng ký tài khoản
                     </h1>
+                    <p className="text-xs text-gray-500 text-center mb-6">
+                        Email BingX, UID và ít nhất một thông tin phải khớp dữ
+                        liệu FAM
+                    </p>
 
-                    <div className="flex flex-col gap-4">
+                    <div className="flex flex-col gap-3">
                         <input
-                            placeholder="Nhập UID"
+                            type="email"
+                            placeholder="Email đăng ký BingX"
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            className="border border-gray-300 p-3 rounded-lg"
+                        />
+
+                        <input
+                            placeholder="UID"
                             value={uid}
                             onChange={(e) => setUid(e.target.value)}
                             className="border border-gray-300 p-3 rounded-lg"
                         />
 
                         <input
-                            placeholder="Tên của bạn"
-                            value={name}
-                            onChange={(e) => setName(e.target.value)}
+                            placeholder="Tài khoản Telegram (@username hoặc tên hiển thị)"
+                            value={telegramAccount}
+                            onChange={(e) => setTelegramAccount(e.target.value)}
                             className="border border-gray-300 p-3 rounded-lg"
                         />
 
+                        <input
+                            placeholder="Tài khoản Discord"
+                            value={discordAccount}
+                            onChange={(e) => setDiscordAccount(e.target.value)}
+                            className="border border-gray-300 p-3 rounded-lg"
+                        />
+
+                        <input
+                            type="password"
+                            placeholder="Mật khẩu"
+                            value={password}
+                            onChange={(e) => setPassword(e.target.value)}
+                            className="border border-gray-300 p-3 rounded-lg"
+                        />
+
+                        {error && (
+                            <p className="text-sm text-red-600 text-center">
+                                {error}
+                            </p>
+                        )}
+
                         <button
-                            onClick={handleSubmit}
+                            type="button"
+                            onClick={() => void handleSubmit()}
                             disabled={loading}
-                            className="bg-blue-500 text-white p-3 rounded-lg disabled:opacity-50"
+                            className="bg-blue-600 text-white p-3 rounded-lg disabled:opacity-50 font-medium"
                         >
                             {loading ? "Đang xử lý..." : "Đăng ký"}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => router.replace("/")}
+                            className="text-sm text-blue-600 underline text-center"
+                        >
+                            Quay lại đăng nhập
                         </button>
                     </div>
                 </div>
@@ -88,7 +145,7 @@ function RegisterContent() {
 
 export default function RegisterPage() {
     return (
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<div className="p-6">Đang tải...</div>}>
             <RegisterContent />
         </Suspense>
     );

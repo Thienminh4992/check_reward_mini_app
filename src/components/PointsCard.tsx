@@ -2,7 +2,10 @@
 import { User } from "@/types/user"
 
 export default function PointsCard({ user }: { user: User }) {
-    const percent = (user.redeemed_point/user.earned_point) * 100
+    const percent =
+        user.earned_point > 0
+            ? (user.redeemed_point / user.earned_point) * 100
+            : 0
 
     return (
         <div className="bg-white mx-4 mt-4 p-5 rounded-2xl shadow">

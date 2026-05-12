@@ -36,13 +36,16 @@ export async function POST(req: NextRequest) {
             success: true,
             data: request,
         });
-    } catch (error: any) {
+    } catch (error: unknown) {
         console.error("POST /api/redeem error:", error);
+
+        const message =
+            error instanceof Error ? error.message : "Redeem failed";
 
         return NextResponse.json(
             {
                 success: false,
-                error: error.message || "Redeem failed",
+                error: message,
             },
             { status: 400 }
         );

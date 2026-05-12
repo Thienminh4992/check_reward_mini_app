@@ -3,20 +3,26 @@
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Home, Gift, ShieldCheck } from "lucide-react"
+import { useUser } from "@/context/UserContext"
 
 export default function BottomNav() {
     const path = usePathname()
+    const { user } = useUser()
 
     const isActive = (p: string) => path === p
+
+    if (path === "/" || path === "/register") {
+        return null
+    }
 
     return (
         <div className="fixed bottom-0 w-full max-w-md bg-white border-t flex justify-around py-2 shadow-md">
 
             {/* HOME */}
             <Link
-                href="/"
+                href="/home"
                 className={`flex flex-col items-center ${
-                    isActive("/") ? "text-blue-500" : "text-gray-400"
+                    isActive("/home") ? "text-blue-500" : "text-gray-400"
                 } transition-all`}
             >
                 <Home size={20} />
@@ -34,16 +40,17 @@ export default function BottomNav() {
                 <p className="text-xs">Quà tặng</p>
             </Link>
 
-            {/* ADMIN (đổi icon chuẩn hơn) */}
-            <Link
-                href="/admin"
-                className={`flex flex-col items-center ${
-                    isActive("/admin/redeem-requests") ? "text-blue-500" : "text-gray-400"
-                } transition-all`}
-            >
-                <ShieldCheck size={20} />
-                <p className="text-xs">Admin</p>
-            </Link>
+            {user?.role === "admin" && (
+                <Link
+                    href="/admin"
+                    className={`flex flex-col items-center ${
+                        isActive("/admin") ? "text-blue-500" : "text-gray-400"
+                    } transition-all`}
+                >
+                    <ShieldCheck size={20} />
+                    <p className="text-xs">Admin</p>
+                </Link>
+            )}
 
         </div>
     )

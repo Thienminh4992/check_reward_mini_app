@@ -8,8 +8,20 @@ export interface User {
     earned_point: number;
     redeemed_point: number;
     available_point: number;
+    /** Chỉ có phía server — không trả về client */
+    password_hash?: string | null;
+    email?: string | null;
+    telegram_account?: string | null;
+    discord_account?: string | null;
     created_at: string;
     updated_at: string;
+}
+
+export interface FamUser {
+    uid: string;
+    email: string | null;
+    telegram_account: string | null;
+    discord_account: string | null;
 }
 
 export interface Reward {
