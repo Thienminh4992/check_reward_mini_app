@@ -6,8 +6,7 @@ export default function Header() {
         <div className="bg-gradient-to-r from-blue-500 to-blue-700 text-white p-4 pb-10 shadow">
             <div className="flex items-center gap-3">
                 <div className="flex-1 text-center">
-                    <p className="text-xs opacity-80">Welcome!</p>
-                    <h1 className="font-semibold text-lg">🤖 Check & Redeem Mini App</h1>
+                    <h2 className="font-semibold text-lg">🤖 Ứng đụng đổi quà tặng</h2>
                 </div>
             </div>
         </div>

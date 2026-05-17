@@ -94,6 +94,13 @@ export async function POST(req: NextRequest) {
             password,
         });
 
+        if (!user) {
+            return NextResponse.json(
+                { success: false, error: "Lỗi đăng ký" },
+                { status: 500 }
+            );
+        }
+
         const token = signToken({
             userId: user.id,
             telegramId: telegramUser.id,

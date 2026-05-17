@@ -11,12 +11,30 @@ interface ShippingInfo {
     address: string
 }
 
-export default function RewardList({ rewards }: { rewards: Reward[] }) {
+interface RewardListProps {
+    rewards: Reward[]
+    onReload?: () => Promise<void>
+}
+
+export default function RewardList({
+                                       rewards,
+                                       onReload
+                                   }: RewardListProps) {
     const { user, setUser } = useUser()
 
     const userPoints = user?.available_point ?? 0
 
+    const sortedRewards = [...rewards].sort(
+        (a, b) => a.required_points - b.required_points
+    )
+    const [page, setPage] = useState(0)
+    const itemsPerPage = 3
+    const totalPages = Math.ceil(sortedRewards.length / itemsPerPage)
 
+    const visibleRewards = sortedRewards.slice(
+        page * itemsPerPage,
+        page * itemsPerPage + itemsPerPage
+    )
     const handleRedeem = async (
         reward: Reward,
         quantity: number,
@@ -50,6 +68,7 @@ export default function RewardList({ rewards }: { rewards: Reward[] }) {
             sessionStorage.removeItem("rewards")
 
             alert("Đổi quà thành công!")
+            await onReload?.()
         } catch (error: unknown) {
             if (error instanceof Error) {
                 alert(error.message)
@@ -64,22 +83,58 @@ export default function RewardList({ rewards }: { rewards: Reward[] }) {
     }
 
     return (
-        <div className="mx-4 mt-6">
+        <div className="mx-3 mt-4">
+            {/*<h3 className="bg-white rounded-2xl p-2 text-center text-gray-800 font-semibold">*/}
+            {/*    🎁 DANH SÁCH QUÀ*/}
+            {/*</h3>*/}
             <div className="bg-white rounded-2xl p-2 text-center text-gray-800 text-lg font-semibold">
-                🎁 DANH SÁCH QUÀ
+                🎁 DANH SÁCH QUÀ TẶNG
             </div>
 
             <div className="space-y-3 mt-3">
-                {[...rewards]
-                    .sort((a, b) => a.required_points - b.required_points)
-                    .map((reward) => (
-                        <RewardItem
-                            key={reward.id}
-                            reward={reward}
-                            userPoints={userPoints}
-                            onRedeem={handleRedeem}
-                        />
-                    ))}
+                {visibleRewards.map((reward) => (
+                    <RewardItem
+                        key={reward.id}
+                        reward={reward}
+                        userPoints={userPoints}
+                        onRedeem={handleRedeem}
+                    />
+                ))}
+            </div>
+
+            {/* Điều hướng */}
+            <div className="flex items-center justify-center gap-3 mt-4">
+                <button
+                    onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                    disabled={page === 0}
+                    className={`w-8 h-8 rounded-full text-sm ${
+                        page === 0
+                            ? "bg-gray-200 text-gray-400"
+                            : "bg-blue-500 text-white"
+                    }`}
+                >
+                    {"<"}
+                </button>
+
+                <span className="text-sm text-gray-500">
+                    {page + 1}/{totalPages}
+                </span>
+
+                <button
+                    onClick={() =>
+                        setPage((prev) =>
+                            Math.min(prev + 1, totalPages - 1)
+                        )
+                    }
+                    disabled={page === totalPages - 1}
+                    className={`w-8 h-8 rounded-full text-sm ${
+                        page === totalPages - 1
+                            ? "bg-gray-200 text-gray-400"
+                            : "bg-blue-500 text-white"
+                    }`}
+                >
+                    {">"}
+                </button>
             </div>
         </div>
     )

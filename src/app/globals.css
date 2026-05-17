@@ -18,3 +18,21 @@ body {
 .animate-scaleIn {
   animation: scaleIn 0.2s ease-out;
 }
+
+.custom-scroll::-webkit-scrollbar {
+  width: 2px;
+}
+
+.custom-scroll::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.35);
+  border-radius: 9999px;
+}
+
+.custom-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scroll {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.35) transparent;
+}

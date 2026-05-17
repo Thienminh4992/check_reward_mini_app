@@ -12,7 +12,7 @@ import {
 const USER_SAFE_SQL = `
   id, telegram_id, telegram_name, uid, name, role,
   earned_point, redeemed_point, available_point,
-  email, telegram_account, discord_account,
+  email, phone_number, address,
   created_at, updated_at
 `;
 
@@ -104,7 +104,7 @@ export const userRepository = {
     // =========================
     createUser(user: {
         telegram_id: number;
-        telegram_name?: string;
+        telegram_name?: string | null;
         uid: string;
         name?: string;
         role?: string;
@@ -113,8 +113,6 @@ export const userRepository = {
         available_point?: number;
         password_hash: string;
         email?: string | null;
-        telegram_account?: string | null;
-        discord_account?: string | null;
     }, client?: PoolClient) {
         return queryOne<User>(
             `
@@ -128,16 +126,13 @@ export const userRepository = {
         redeemed_point,
         available_point,
         password_hash,
-        email,
-        telegram_account,
-        discord_account
+        email
       )
-      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
+      VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10)
       RETURNING
         id, telegram_id, telegram_name, uid, name, role,
         earned_point, redeemed_point, available_point,
-        email, telegram_account, discord_account,
-        created_at, updated_at
+        email, created_at, updated_at
       `,
             [
                 user.telegram_id,
@@ -149,9 +144,40 @@ export const userRepository = {
                 user.redeemed_point ?? 0,
                 user.available_point ?? 0,
                 user.password_hash,
-                user.email ?? null,
-                user.telegram_account ?? null,
-                user.discord_account ?? null,
+                user.email ?? null
+            ],
+            client
+        );
+    },
+
+    updateProfile(
+        userId: string,
+        payload: {
+            name: string;
+            email: string | null;
+            phone_number: string | null;
+            address: string | null;
+        },
+        client?: PoolClient
+    ) {
+        return queryOne<User>(
+            `
+        UPDATE users
+        SET
+            name = $2,
+            email = $3,
+            phone_number = $4,
+            address = $5,
+            updated_at = NOW()
+        WHERE id = $1
+        RETURNING ${USER_SAFE_SQL}
+        `,
+            [
+                userId,
+                payload.name,
+                payload.email,
+                payload.phone_number,
+                payload.address,
             ],
             client
         );

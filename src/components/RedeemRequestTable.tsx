@@ -17,7 +17,7 @@ export default function RedeemRequestTable({ items, onApproved }: Props) {
     const [rejectId, setRejectId] = useState<string | null>(null)
     const [rejectReason, setRejectReason] = useState("")
     const [submitting, setSubmitting] = useState(false)
-    const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    // const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const handleApprove = async () => {
         if (!approveId) return
 
@@ -85,24 +85,24 @@ export default function RedeemRequestTable({ items, onApproved }: Props) {
                                 Đổi {item.quantity} {item.reward_name}
                             </p>
 
-                            <div className="mt-2 space-y-1 text-xs text-gray-400">
-                                <p>📞 {item.shipping_info?.phone}</p>
-                                <p className="truncate">📍 {item.shipping_info?.address}</p>
-                            </div>
+                            {/*<div className="mt-2 space-y-1 text-xs text-gray-400">*/}
+                            {/*    <p>📞 {item.shipping_info?.phone}</p>*/}
+                            {/*    <p className="truncate">📍 {item.shipping_info?.address}</p>*/}
+                            {/*</div>*/}
 
-                            {item.proof_image && item.proof_image.length > 0 && (
-                                <div className="mt-3 flex gap-2 overflow-x-auto">
-                                    {item.proof_image.map((img: string, index: number) => (
-                                        <img
-                                            key={index}
-                                            src={img}
-                                            alt={`proof-${index}`}
-                                            className="w-16 h-16 rounded-lg object-cover border cursor-pointer hover:opacity-80"
-                                            onClick={() => setSelectedImage(img)}
-                                        />
-                                    ))}
-                                </div>
-                            )}
+                            {/*{item.proof_image && item.proof_image.length > 0 && (*/}
+                            {/*    <div className="mt-3 flex gap-2 overflow-x-auto">*/}
+                            {/*        {item.proof_image.map((img: string, index: number) => (*/}
+                            {/*            <img*/}
+                            {/*                key={index}*/}
+                            {/*                src={img}*/}
+                            {/*                alt={`proof-${index}`}*/}
+                            {/*                className="w-16 h-16 rounded-lg object-cover border cursor-pointer hover:opacity-80"*/}
+                            {/*                onClick={() => setSelectedImage(img)}*/}
+                            {/*            />*/}
+                            {/*        ))}*/}
+                            {/*    </div>*/}
+                            {/*)}*/}
                         </div>
 
 
@@ -128,20 +128,20 @@ export default function RedeemRequestTable({ items, onApproved }: Props) {
                     </div>
                 ))}
             </div>
-            {/* ViEW IMAGE MODAL */}
-            {selectedImage && (
-                <div
-                    className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
-                    onClick={() => setSelectedImage(null)}
-                >
-                    <img
-                        src={selectedImage}
-                        alt="preview"
-                        className="max-w-[90%] max-h-[90%] rounded-xl shadow-lg"
-                        onClick={(e) => e.stopPropagation()}
-                    />
-                </div>
-            )}
+            {/*/!* ViEW IMAGE MODAL *!/*/}
+            {/*{selectedImage && (*/}
+            {/*    <div*/}
+            {/*        className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"*/}
+            {/*        onClick={() => setSelectedImage(null)}*/}
+            {/*    >*/}
+            {/*        <img*/}
+            {/*            src={selectedImage}*/}
+            {/*            alt="preview"*/}
+            {/*            className="max-w-[90%] max-h-[90%] rounded-xl shadow-lg"*/}
+            {/*            onClick={(e) => e.stopPropagation()}*/}
+            {/*        />*/}
+            {/*    </div>*/}
+            {/*)}*/}
             {/* APPROVE MODAL */}
             {approveId && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">

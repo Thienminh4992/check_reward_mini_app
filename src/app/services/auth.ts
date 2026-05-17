@@ -24,28 +24,53 @@ export type LoginResponse =
     | LoginNeedsRegisterResponse
     | LoginErrorResponse;
 
+type LoginApiResponse =
+    | {
+    success: true;
+    user: unknown;
+}
+    | {
+    success: false;
+    needs_register: true;
+}
+    | {
+    success: false;
+    error: string;
+};
+
 export async function loginWithUidPassword(
     payload: LoginPayload
 ): Promise<LoginResponse> {
     const res = await fetch("/api/auth/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
     });
 
-    const data = (await res.json()) as Record<string, unknown>;
+    const data: LoginApiResponse = await res.json();
 
-    if (data.needs_register === true) {
-        return { success: false, needs_register: true };
+    if (data.success) {
+        return data;
     }
 
-    if (res.ok && data.success === true) {
-        return data as LoginSuccessResponse;
+    if ("needs_register" in data && data.needs_register) {
+        return data;
     }
 
-    const err =
-        typeof data.error === "string" ? data.error : "Đăng nhập thất bại";
-    return { success: false, error: err };
+    if ("error" in data) {
+        return {
+            success: false,
+            error: data.error,
+        };
+    }
+
+    return {
+        success: false,
+        error: "Đăng nhập thất bại",
+    };
 }
 
 export interface RegisterPayload {
@@ -62,28 +87,41 @@ export interface RegisterSuccessResponse {
     user: unknown;
 }
 
+export interface RegisterErrorResponse {
+    success: false;
+    error: string;
+}
+
+export type RegisterResponse =
+    | RegisterSuccessResponse
+    | RegisterErrorResponse;
+
+type RegisterApiResponse =
+    | {
+    success: true;
+    user: unknown;
+}
+    | {
+    success: false;
+    error: string;
+};
+
 export async function registerFamAccount(
     payload: RegisterPayload
 ): Promise<RegisterSuccessResponse> {
     const res = await fetch("/api/auth/register", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+            "Content-Type": "application/json",
+        },
         body: JSON.stringify(payload),
     });
 
-    const data = (await res.json()) as Record<string, unknown>;
+    const data: RegisterApiResponse = await res.json();
 
-    if (!res.ok) {
-        const err =
-            typeof data.error === "string"
-                ? data.error
-                : "Đăng ký thất bại";
-        throw new Error(err);
+    if (!data.success) {
+        throw new Error(data.error || "Đăng ký thất bại");
     }
 
-    if (data.success === true) {
-        return data as RegisterSuccessResponse;
-    }
-
-    throw new Error("Đăng ký thất bại");
+    return data;
 }

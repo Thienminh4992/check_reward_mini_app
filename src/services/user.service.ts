@@ -4,6 +4,13 @@ import { hashPassword, verifyPassword } from "@/lib/password";
 import { userRepository } from "@/lib/repository";
 import type { User } from "@/db/schema";
 import type { RewardHistoryItem } from "@/types/user";
+import {isValidEmail,isValidPhone,} from "@/lib/validators";
+
+export type UpdateProfileResult =
+    | {status: "ok";user: User;}
+    | {status: "invalid_name";}
+    | {status: "invalid_email";}
+    | {status: "invalid_phone";};
 
 export type UidPasswordLoginResult =
     | { status: "ok"; user: User }
@@ -22,6 +29,7 @@ export const userService = {
         telegramId: number
     ): Promise<UidPasswordLoginResult> {
         const row = await userRepository.getUserWithPasswordByUid(uid);
+        console.log('loginWithUidPassword', row, 'telegramId', telegramId);
         if (!row) {
             return { status: "not_found" };
         }
@@ -32,7 +40,7 @@ export const userService = {
         if (!valid) {
             return { status: "wrong_password" };
         }
-        if (row.telegram_id !== telegramId) {
+        if (String(row.telegram_id) !== String(telegramId)) {
             return { status: "telegram_mismatch" };
         }
         const { password_hash: _h, ...safe } = row;
@@ -84,7 +92,7 @@ export const userService = {
 
         return userRepository.createUser({
             telegram_id: payload.telegram_id,
-            telegram_name: payload.telegram_name,
+            telegram_name: payload.telegram_account.trim(),
             uid,
             name: displayName,
             role: "user",
@@ -93,25 +101,68 @@ export const userService = {
             available_point: 0,
             password_hash,
             email: payload.email.trim(),
-            telegram_account: payload.telegram_account.trim(),
-            discord_account: payload.discord_account.trim(),
         });
     },
 
+    async updateProfile(
+        userId: string,
+        payload: {
+            name: string;
+            email?: string;
+            address?: string;
+            phone_number?: string;
+        }
+    ): Promise<UpdateProfileResult> {
+        const name = payload.name?.trim() || "";
+        const email = payload.email?.trim() || "";
+        const phone = payload.phone_number?.trim() || "";
+        const address = payload.address?.trim() || "";
+
+        if (name.length < 2) {
+            return { status: "invalid_name" };
+        }
+
+        if (email && !isValidEmail(email)) {
+            return { status: "invalid_email" };
+        }
+
+        if (phone && !isValidPhone(phone)) {
+            return { status: "invalid_phone" };
+        }
+
+        const user = await userRepository.updateProfile(userId, {
+            name,
+            email: email || null,
+            phone_number: phone || null,
+            address: address || null,
+        });
+
+        return {
+            status: "ok",
+            user: user!,
+        };
+    },
     // =========================
     // USER DASHBOARD
     // =========================
     async getDashboard(userId: string) {
         const user = await userRepository.getUserById(userId);
 
+
+
         if (!user) {
             throw new Error("User not found");
         }
 
         const history = await userRepository.getRedeemedHistory(userId);
-
-        const volume = await userRepository.getUserVolumeByUid(user.uid);
-
+        const volumeData = await userRepository.getUserVolumeByUid(user.uid);
+        const volume = Math.round(
+            Number(volumeData?.total_volume_usd || 0)
+        );
+        user.earned_point = volume
+        user.available_point = user.earned_point - user.redeemed_point;
+        console.log("volume", volume);
+        console.log("available_point", user.available_point);
         const reward_history_items: RewardHistoryItem[] = history.map((h) => ({
             id: h.id,
             name: h.description ?? h.source,

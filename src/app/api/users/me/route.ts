@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
 
         const payload = verifyToken(token);
         if (!payload) {
-            return NextResponse.json({ error: "Unauthorized" });
+            return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
         const dashboard = await userService.getDashboard(payload.userId);
         console.log('/me/route.ts dashboard', dashboard);

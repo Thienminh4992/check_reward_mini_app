@@ -56,29 +56,29 @@ export default function RewardCard({ reward, userPoints, onRedeem }: Props) {
 
     return (
         <>
-            <div className="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4 flex flex-col">
-                <div className="flex gap-4">
+            <div className="bg-white rounded-xl shadow-sm hover:shadow-md transition p-3 flex flex-col scale-[0.75] origin-top">
+                <div className="flex gap-3">
                     <div className="flex-1 min-w-0">
-                        <h3 className="font-semibold text-gray-800 text-base">
+                        <h5 className="font-semibold text-gray-800 text-sm leading-tight">
                             {reward.name}
-                        </h3>
+                        </h5>
 
-                        <p className="text-sm text-gray-500 mt-1 line-clamp-2">
+                        <p className="text-[11px] text-gray-500 mt-1 line-clamp-2 leading-snug">
                             {reward.description}
                         </p>
 
-                        <div className="mt-2 flex items-center gap-3 flex-wrap">
-                            <span className="text-blue-600 font-semibold text-sm">
-                                {reward.required_points} điểm
-                            </span>
+                        <div className="mt-2 flex items-center gap-2 flex-wrap">
+                        <span className="text-blue-600 font-semibold text-xs">
+                            {reward.required_points} điểm
+                        </span>
 
-                            <span className="text-gray-400 text-xs">
-                                Còn {reward.stock}
-                            </span>
+                            <span className="text-gray-400 text-[10px]">
+                            Còn {reward.stock}
+                        </span>
                         </div>
                     </div>
 
-                    <div className="w-[96px] aspect-square rounded-xl overflow-hidden bg-gray-100 flex-shrink-0">
+                    <div className="w-[72px] aspect-square rounded-lg overflow-hidden bg-gray-100 flex-shrink-0">
                         <img
                             src={reward.image_url}
                             alt={reward.name}
@@ -87,27 +87,31 @@ export default function RewardCard({ reward, userPoints, onRedeem }: Props) {
                     </div>
                 </div>
 
-                <div className="mt-4 flex items-center justify-between gap-3">
-                    <div className="flex items-center bg-gray-100 rounded-full px-2 py-1 shadow-inner">
+                <div className="mt-2 flex items-center justify-between gap-2">
+                    <div className="flex items-center bg-gray-100 rounded-full px-1 py-[2px] shadow-inner">
                         <button
                             onClick={decrease}
                             disabled={quantity === 1}
-                            className={`w-8 h-8 flex items-center justify-center rounded-full transition ${
-                                quantity === 1 ? "text-gray-300" : "hover:bg-gray-200"
+                            className={`w-5 h-5 flex items-center justify-center rounded-full text-[11px] transition ${
+                                quantity === 1
+                                    ? "text-gray-300"
+                                    : "hover:bg-gray-200"
                             }`}
                         >
                             -
                         </button>
 
-                        <span className="w-10 text-center font-medium text-sm">
-                            {quantity}
-                        </span>
+                        <span className="w-5 text-center font-medium text-[10px]">
+            {quantity}
+        </span>
 
                         <button
                             onClick={increase}
                             disabled={quantity === reward.stock}
-                            className={`w-8 h-8 flex items-center justify-center rounded-full transition ${
-                                quantity === reward.stock ? "text-gray-300" : "hover:bg-gray-200"
+                            className={`w-5 h-5 flex items-center justify-center rounded-full text-[11px] transition ${
+                                quantity === reward.stock
+                                    ? "text-gray-300"
+                                    : "hover:bg-gray-200"
                             }`}
                         >
                             +
@@ -117,10 +121,10 @@ export default function RewardCard({ reward, userPoints, onRedeem }: Props) {
                     <button
                         onClick={handleRedeemClick}
                         disabled={reward.stock === 0}
-                        className={`px-4 py-2 text-sm font-medium rounded-xl transition ${
+                        className={`px-2.5 py-1 text-[10px] font-medium rounded-md leading-none transition ${
                             reward.stock === 0
                                 ? "bg-gray-300 text-white cursor-not-allowed"
-                                : "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-md active:scale-95"
+                                : "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow active:scale-95"
                         }`}
                     >
                         {reward.stock === 0 ? "Hết hàng" : "Đổi ngay"}
@@ -135,12 +139,15 @@ export default function RewardCard({ reward, userPoints, onRedeem }: Props) {
                         <h2 className="text-lg font-semibold text-red-500 mb-2">
                             Không đủ điểm
                         </h2>
-                        <p className="text-gray-600 mb-4">
-                            Bạn cần <b>{totalPoints}</b> điểm nhưng hiện chỉ có <b>{userPoints}</b> điểm.
+
+                        <p className="text-gray-600 mb-4 text-sm">
+                            Bạn cần <b>{totalPoints}</b> điểm nhưng hiện chỉ có{" "}
+                            <b>{userPoints}</b> điểm.
                         </p>
+
                         <button
                             onClick={() => setShowError(false)}
-                            className="px-4 py-2 bg-blue-500 text-white rounded-xl"
+                            className="px-4 py-2 bg-blue-500 text-white rounded-xl text-sm"
                         >
                             Đóng
                         </button>
@@ -151,21 +158,23 @@ export default function RewardCard({ reward, userPoints, onRedeem }: Props) {
             {/* Modal form nhận quà */}
             {showForm && (
                 <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 w-[380px] shadow-xl">
-                        <h2 className="text-lg font-semibold mb-4">
+                    <div className="bg-white rounded-2xl p-5 w-[340px] shadow-xl">
+                        <h2 className="text-base font-semibold mb-4">
                             Thông tin nhận quà
                         </h2>
 
                         <div className="space-y-3">
-
                             <input
                                 type="text"
                                 placeholder="Họ và tên"
                                 value={shippingInfo.name}
                                 onChange={(e) =>
-                                    setShippingInfo({ ...shippingInfo, name: e.target.value })
+                                    setShippingInfo({
+                                        ...shippingInfo,
+                                        name: e.target.value,
+                                    })
                                 }
-                                className="w-full border rounded-xl px-3 py-2"
+                                className="w-full border rounded-xl px-3 py-2 text-sm"
                             />
 
                             <input
@@ -173,18 +182,24 @@ export default function RewardCard({ reward, userPoints, onRedeem }: Props) {
                                 placeholder="Số điện thoại"
                                 value={shippingInfo.phone}
                                 onChange={(e) =>
-                                    setShippingInfo({ ...shippingInfo, phone: e.target.value })
+                                    setShippingInfo({
+                                        ...shippingInfo,
+                                        phone: e.target.value,
+                                    })
                                 }
-                                className="w-full border rounded-xl px-3 py-2"
+                                className="w-full border rounded-xl px-3 py-2 text-sm"
                             />
 
                             <textarea
                                 placeholder="Địa chỉ nhận"
                                 value={shippingInfo.address}
                                 onChange={(e) =>
-                                    setShippingInfo({ ...shippingInfo, address: e.target.value })
+                                    setShippingInfo({
+                                        ...shippingInfo,
+                                        address: e.target.value,
+                                    })
                                 }
-                                className="w-full border rounded-xl px-3 py-2"
+                                className="w-full border rounded-xl px-3 py-2 text-sm"
                             />
 
                             <input
@@ -193,23 +208,23 @@ export default function RewardCard({ reward, userPoints, onRedeem }: Props) {
                                 accept="image/*"
                                 onChange={(e) => {
                                     if (!e.target.files) return
-                                    setFiles(Array.from(e.target.files).slice(0, 2)) // max 2 ảnh
+                                    setFiles(Array.from(e.target.files).slice(0, 2))
                                 }}
-                                className="w-full border rounded-xl px-3 py-2"
+                                className="w-full border rounded-xl px-3 py-2 text-sm"
                             />
                         </div>
 
                         <div className="mt-5 flex justify-end gap-3">
                             <button
                                 onClick={() => setShowForm(false)}
-                                className="px-4 py-2 rounded-xl bg-gray-200"
+                                className="px-3 py-2 rounded-xl bg-gray-200 text-sm"
                             >
                                 Huỷ
                             </button>
 
                             <button
                                 onClick={handleSubmit}
-                                className="px-4 py-2 rounded-xl bg-blue-500 text-white"
+                                className="px-3 py-2 rounded-xl bg-blue-500 text-white text-sm"
                             >
                                 Xác nhận
                             </button>

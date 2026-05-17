@@ -11,7 +11,7 @@ export default function BottomNav() {
 
     const isActive = (p: string) => path === p
 
-    if (path === "/" || path === "/register") {
+    if (path === "/login" || path === "/register") {
         return null
     }
 
@@ -29,16 +29,16 @@ export default function BottomNav() {
                 <p className="text-xs">Trang chủ</p>
             </Link>
 
-            {/* REWARD */}
-            <Link
-                href="/reward"
-                className={`flex flex-col items-center ${
-                    isActive("/reward") ? "text-blue-500" : "text-gray-400"
-                } transition-all`}
-            >
-                <Gift size={20} />
-                <p className="text-xs">Quà tặng</p>
-            </Link>
+            {/*/!* REWARD *!/*/}
+            {/*<Link*/}
+            {/*    href="/reward"*/}
+            {/*    className={`flex flex-col items-center ${*/}
+            {/*        isActive("/reward") ? "text-blue-500" : "text-gray-400"*/}
+            {/*    } transition-all`}*/}
+            {/*>*/}
+            {/*    <Gift size={20} />*/}
+            {/*    <p className="text-xs">Quà tặng</p>*/}
+            {/*</Link>*/}
 
             {user?.role === "admin" && (
                 <Link

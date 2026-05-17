@@ -13,18 +13,50 @@ export interface RedeemRequest {
 }
 
 export async function getRedeemRequests(
-    _status: string
+    status: string
 ): Promise<RedeemRequest[]> {
-    return [];
+    const res = await fetch(
+        `/api/admin/redeem-requests?status=${status}`
+    );
+
+    if (!res.ok) {
+        throw new Error("Fetch failed");
+    }
+
+    return res.json();
 }
 
-export async function approveRedeemRequest(_id: string): Promise<void> {
-    throw new Error("Admin API chưa được kết nối");
+export async function approveRedeemRequest(
+    id: string
+): Promise<void> {
+    const res = await fetch(
+        `/api/admin/redeem-requests/${id}/approve`,
+        {
+            method: "POST",
+        }
+    );
+
+    if (!res.ok) {
+        throw new Error("Approve failed");
+    }
 }
 
 export async function rejectRedeemRequest(
-    _id: string,
-    _reason: string
+    id: string,
+    reason: string
 ): Promise<void> {
-    throw new Error("Admin API chưa được kết nối");
+    const res = await fetch(
+        `/api/admin/redeem-requests/${id}/reject`,
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ reason }),
+        }
+    );
+
+    if (!res.ok) {
+        throw new Error("Reject failed");
+    }
 }

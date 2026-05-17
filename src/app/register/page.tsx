@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import {Suspense, useEffect, useMemo, useState} from "react";
 import { useRouter } from "next/navigation";
 import Header from "@/components/Header";
 import { registerFamAccount } from "@/app/services/auth";
@@ -8,7 +8,6 @@ import { registerFamAccount } from "@/app/services/auth";
 function RegisterContent() {
     const router = useRouter();
 
-    const [initData, setInitData] = useState<string | null>(null);
     const [email, setEmail] = useState("");
     const [uid, setUid] = useState("");
     const [telegramAccount, setTelegramAccount] = useState("");
@@ -16,14 +15,18 @@ function RegisterContent() {
     const [password, setPassword] = useState("");
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const initData = useMemo(() => {
+        if (typeof window === "undefined") return null;
+        return window.Telegram?.WebApp?.initData ?? null;
+    }, []);
 
     useEffect(() => {
         const tg = window.Telegram?.WebApp;
+
         if (tg) {
             tg.ready();
             tg.expand();
         }
-        setInitData(tg?.initData ?? null);
     }, []);
 
     const handleSubmit = async () => {
@@ -71,9 +74,19 @@ function RegisterContent() {
                     <h1 className="text-2xl font-bold text-center mb-2">
                         Đăng ký tài khoản
                     </h1>
+                    <p className="text-xs text-gray-500 text-center mb-4">
+                        Chỉ dùng khi UID chưa có trong hệ thống. Đã có tài khoản?{" "}
+                        <button
+                            type="button"
+                            onClick={() => router.replace("/login")}
+                            className="text-blue-600 underline font-medium"
+                        >
+                            Đăng nhập
+                        </button>
+                    </p>
                     <p className="text-xs text-gray-500 text-center mb-6">
-                        Email BingX, UID và ít nhất một thông tin phải khớp dữ
-                        liệu FAM
+                        Email BingX, UID, Telegram, Discord và mật khẩu — ít nhất
+                        một trong email / Telegram / Discord phải khớp bảng FAM.
                     </p>
 
                     <div className="flex flex-col gap-3">
@@ -131,7 +144,7 @@ function RegisterContent() {
 
                         <button
                             type="button"
-                            onClick={() => router.replace("/")}
+                            onClick={() => router.replace("/login")}
                             className="text-sm text-blue-600 underline text-center"
                         >
                             Quay lại đăng nhập
@@ -145,7 +158,7 @@ function RegisterContent() {
 
 export default function RegisterPage() {
     return (
-        <Suspense fallback={<div className="p-6">Đang tải...</div>}>
+        <Suspense fallback={<div className="p-6"></div>}>
             <RegisterContent />
         </Suspense>
     );

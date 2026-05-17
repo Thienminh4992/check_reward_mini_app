@@ -1,8 +1,13 @@
 // src/lib/auth.ts
+
 import jwt from "jsonwebtoken";
 import { cookies } from "next/headers";
 
-const JWT_SECRET = process.env.JWT_SECRET || "dev_secret_key";
+if (!process.env.JWT_SECRET) {
+    throw new Error("JWT_SECRET is missing");
+}
+
+const JWT_SECRET = process.env.JWT_SECRET;
 
 export interface SessionPayload {
     userId: string;
@@ -15,9 +20,14 @@ export function signToken(payload: SessionPayload) {
     });
 }
 
-export function verifyToken(token: string): SessionPayload | null {
+export function verifyToken(
+    token: string
+): SessionPayload | null {
     try {
-        return jwt.verify(token, JWT_SECRET) as SessionPayload;
+        return jwt.verify(
+            token,
+            JWT_SECRET
+        ) as SessionPayload;
     } catch {
         return null;
     }
@@ -25,8 +35,13 @@ export function verifyToken(token: string): SessionPayload | null {
 
 export async function getCurrentUser() {
     const cookieStore = await cookies();
-    const token = cookieStore.get("session_token")?.value;
-    if (!token) return null;
+
+    const token =
+        cookieStore.get("session_token")?.value;
+
+    if (!token) {
+        return null;
+    }
 
     return verifyToken(token);
 }
