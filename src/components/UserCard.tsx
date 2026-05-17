@@ -116,7 +116,7 @@ export default function UserCard({
 
     return (
         <>
-            <div className="bg-white mx-4 -mt-6 p-4 rounded-2xl shadow relative z-10">
+            <div className="bg-white mx-4 -mt-6 p-4 rounded-2xl shadow relative z-10 " >
                 <div className="flex items-center gap-4">
                     <div
                         className="relative"
@@ -240,6 +240,17 @@ export default function UserCard({
                                     className="w-full mt-1 border border-gray-300 rounded-lg p-3"
                                 />
                             </div>
+                            <div>
+                                <label className="text-sm text-gray-500">
+                                    Telegram ID
+                                </label>
+
+                                <input
+                                    value={user.telegram_id || ""}
+                                    disabled
+                                    className="w-full mt-1 border border-gray-200 bg-gray-10 text-gray-500 rounded-lg p-3 cursor-not-allowed"
+                                />
+                            </div>
 
                             <div>
                                 <label className="text-sm text-gray-500">
@@ -267,8 +278,7 @@ export default function UserCard({
 
                             <div>
                                 <label className="text-sm text-gray-500">
-                                    Số điện
-                                    thoại
+                                    Số điện thoại
                                 </label>
 
                                 <input

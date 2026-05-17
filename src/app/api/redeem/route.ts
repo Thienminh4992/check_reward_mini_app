@@ -9,9 +9,7 @@ export async function POST(req: NextRequest) {
         const {
             user_id,
             reward_id,
-            quantity,
-            shipping_info,
-            proof_image,
+            quantity
         } = body;
 
         if (!user_id || !reward_id || !quantity) {
@@ -27,9 +25,7 @@ export async function POST(req: NextRequest) {
         const request = await userService.createRequest({
             user_id,
             reward_id,
-            quantity,
-            shipping_info,
-            proof_image,
+            quantity
         });
 
         return NextResponse.json({

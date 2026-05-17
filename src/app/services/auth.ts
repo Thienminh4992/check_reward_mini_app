@@ -51,7 +51,6 @@ export async function loginWithUidPassword(
     });
 
     const data: LoginApiResponse = await res.json();
-
     if (data.success) {
         return data;
     }

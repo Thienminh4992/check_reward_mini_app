@@ -4,12 +4,17 @@
 
 export interface RedeemRequest {
     id: string;
-    telegram_name: string;
+    uid: string;
+    name: string;
+    telegram_id: string;
+    phone_number: string;
+    email: string;
+    address: string;
     quantity: number;
     reward_name: string;
     status: string;
-    shipping_info?: { phone: string; address: string };
-    proof_image?: string[];
+    // shipping_info?: { phone: string; address: string };
+    // proof_image?: string[];
 }
 
 export async function getRedeemRequests(

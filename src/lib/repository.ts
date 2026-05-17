@@ -66,7 +66,7 @@ export const userRepository = {
       SELECT id, name, description, image_url, required_points, stock
       FROM rewards
       WHERE is_active = true
-      ORDER BY created_at DESC
+      ORDER BY required_points DESC
       `,
             [],
             client
@@ -339,8 +339,12 @@ export const userRepository = {
             `
       SELECT 
           rr.*,
-          u.telegram_name,
           u.uid,
+          u.telegram_id,
+          u.name,
+          u.phone_number,
+          u.email,
+          u.address,
           r.name as reward_name,
           r.required_points
       FROM redeem_requests rr

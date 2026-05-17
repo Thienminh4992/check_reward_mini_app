@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
             return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
         }
         const dashboard = await userService.getDashboard(payload.userId);
-        console.log('/me/route.ts dashboard', dashboard);
+        // console.log('/me/route.ts dashboard', dashboard);
         return NextResponse.json(dashboard);
     } catch {
         return NextResponse.json({ error: "Unauthorized" }, { status: 401 });

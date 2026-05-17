@@ -36,3 +36,9 @@ body {
   scrollbar-width: thin;
   scrollbar-color: rgba(156, 163, 175, 0.35) transparent;
 }
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}

@@ -57,8 +57,8 @@ export const redeemService = {
                     reward_id: payload.reward_id,
                     quantity: payload.quantity,
                     status: "pending",
-                    shipping_info: payload.shipping_info,
-                    proof_image: payload.proof_image,
+                    // shipping_info: payload.shipping_info,
+                    // proof_image: payload.proof_image,
                 },
                 client
             );

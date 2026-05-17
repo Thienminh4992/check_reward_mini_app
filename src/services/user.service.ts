@@ -29,7 +29,7 @@ export const userService = {
         telegramId: number
     ): Promise<UidPasswordLoginResult> {
         const row = await userRepository.getUserWithPasswordByUid(uid);
-        console.log('loginWithUidPassword', row, 'telegramId', telegramId);
+        // console.log('loginWithUidPassword', row, 'telegramId', telegramId);
         if (!row) {
             return { status: "not_found" };
         }
@@ -181,9 +181,9 @@ export const userService = {
         };
     },
 
-    async getRewards() {
-        return userRepository.getRewards();
-    },
+    // async getRewards() {
+    //     return userRepository.getRewards();
+    // },
 
     // =========================
     // CREATE REDEEM REQUEST
@@ -192,8 +192,6 @@ export const userService = {
         user_id: string;
         reward_id: string;
         quantity: number;
-        shipping_info?: unknown;
-        proof_image?: unknown;
     }) {
         return withTransaction(async (client) => {
             const user = await userRepository.getUserById(payload.user_id, client);
@@ -203,11 +201,11 @@ export const userService = {
             if (!reward) throw new Error("Reward not found");
 
             const requiredPoints = reward.required_points * payload.quantity;
-
+            console.log("PAYLOAD", payload)
             if (reward.stock < payload.quantity) {
                 throw new Error("Reward out of stock");
             }
-
+            // console.log("requiredPoints", requiredPoints, "user.available_point", user.available_point)
             if (user.available_point < requiredPoints) {
                 throw new Error("Not enough points");
             }
@@ -234,8 +232,6 @@ export const userService = {
                     reward_id: payload.reward_id,
                     quantity: payload.quantity,
                     status: "pending",
-                    proof_image: payload.proof_image,
-                    shipping_info: payload.shipping_info,
                 },
                 client
             );

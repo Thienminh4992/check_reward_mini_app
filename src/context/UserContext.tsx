@@ -1,8 +1,8 @@
 //context/UserContext
 "use client"
 import {User} from "@/types/user"
-import { createContext, useContext, useState, ReactNode } from "react"
 import { Dispatch, SetStateAction } from "react"
+import {createContext,  useContext,  useState,  ReactNode,  useMemo,} from "react"
 interface UserContextType {
     user: User | null
     setUser: Dispatch<SetStateAction<User | null>>
@@ -12,9 +12,15 @@ const UserContext = createContext<UserContextType | undefined>(undefined)
 
 export function UserProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null)
-
+    const value = useMemo(
+        () => ({
+            user,
+            setUser,
+        }),
+        [user]
+    )
     return (
-        <UserContext.Provider value={{ user, setUser }}>
+        <UserContext.Provider value={value}>
             {children}
         </UserContext.Provider>
     )

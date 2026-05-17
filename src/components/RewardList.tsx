@@ -1,15 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { memo, useCallback, useMemo, useState } from "react"
+import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Reward } from "@/types/reward"
 import { redeemReward } from "@/app/services/redeem"
 import { useUser } from "@/context/UserContext"
-
-interface ShippingInfo {
-    name: string
-    phone: string
-    address: string
-}
 
 interface RewardListProps {
     rewards: Reward[]
@@ -24,22 +19,30 @@ export default function RewardList({
 
     const userPoints = user?.available_point ?? 0
 
-    const sortedRewards = [...rewards].sort(
-        (a, b) => a.required_points - b.required_points
-    )
-    const [page, setPage] = useState(0)
-    const itemsPerPage = 3
-    const totalPages = Math.ceil(sortedRewards.length / itemsPerPage)
+    const sortedRewards = useMemo(() => {
+        return [...rewards].sort(
+            (a, b) => b.required_points - a.required_points
+        )
+    }, [rewards])
 
-    const visibleRewards = sortedRewards.slice(
-        page * itemsPerPage,
-        page * itemsPerPage + itemsPerPage
+    const [page, setPage] = useState(0)
+
+    const itemsPerPage = 3
+
+    const totalPages = Math.ceil(
+        sortedRewards.length / itemsPerPage
     )
-    const handleRedeem = async (
+
+    const visibleRewards = useMemo(() => {
+        return sortedRewards.slice(
+            page * itemsPerPage,
+            page * itemsPerPage + itemsPerPage
+        )
+    }, [sortedRewards, page])
+
+    const handleRedeem = useCallback(async (
         reward: Reward,
-        quantity: number,
-        shippingInfo: ShippingInfo,
-        proofImage: string[]
+        quantity: number
     ) => {
         try {
             if (!user) return
@@ -48,26 +51,29 @@ export default function RewardList({
                 user_id: user.id,
                 reward_id: reward.id,
                 quantity,
-                name: reward.name,
-                proof_image: proofImage,
-                shipping_info: shippingInfo
+                name: reward.name
             })
 
-            const totalPoints = reward.required_points * quantity
+            const totalPoints =
+                reward.required_points * quantity
 
-            // ✅ fix race condition + cộng dồn đúng
+            // ✅ fix race condition
             setUser(prev => {
                 if (!prev) return prev
+
                 return {
                     ...prev,
-                    available_point: prev.available_point - totalPoints,
-                    redeemed_point: prev.redeemed_point + totalPoints
+                    available_point:
+                        prev.available_point - totalPoints,
+                    redeemed_point:
+                        prev.redeemed_point + totalPoints
                 }
             })
 
             sessionStorage.removeItem("rewards")
 
             alert("Đổi quà thành công!")
+
             await onReload?.()
         } catch (error: unknown) {
             if (error instanceof Error) {
@@ -76,17 +82,18 @@ export default function RewardList({
                 alert("Có lỗi xảy ra")
             }
         }
-    }
+    }, [user, setUser, onReload])
 
     if (!user) {
-        return <div className="p-4 text-center">Loading user...</div>
+        return (
+            <div className="p-4 text-center">
+                Loading user...
+            </div>
+        )
     }
 
     return (
         <div className="mx-3 mt-4">
-            {/*<h3 className="bg-white rounded-2xl p-2 text-center text-gray-800 font-semibold">*/}
-            {/*    🎁 DANH SÁCH QUÀ*/}
-            {/*</h3>*/}
             <div className="bg-white rounded-2xl p-2 text-center text-gray-800 text-lg font-semibold">
                 🎁 DANH SÁCH QUÀ TẶNG
             </div>
@@ -105,35 +112,42 @@ export default function RewardList({
             {/* Điều hướng */}
             <div className="flex items-center justify-center gap-3 mt-4">
                 <button
-                    onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                    onClick={() =>
+                        setPage(prev =>
+                            Math.max(prev - 1, 0)
+                        )
+                    }
                     disabled={page === 0}
-                    className={`w-8 h-8 rounded-full text-sm ${
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
                         page === 0
                             ? "bg-gray-200 text-gray-400"
-                            : "bg-blue-500 text-white"
+                            : "bg-blue-500 text-white hover:bg-blue-600"
                     }`}
                 >
-                    {"<"}
+                    <ChevronLeft size={18} />
                 </button>
 
-                <span className="text-sm text-gray-500">
+                <span className="text-sm font-medium text-gray-500">
                     {page + 1}/{totalPages}
                 </span>
 
                 <button
                     onClick={() =>
-                        setPage((prev) =>
-                            Math.min(prev + 1, totalPages - 1)
+                        setPage(prev =>
+                            Math.min(
+                                prev + 1,
+                                totalPages - 1
+                            )
                         )
                     }
                     disabled={page === totalPages - 1}
-                    className={`w-8 h-8 rounded-full text-sm ${
+                    className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
                         page === totalPages - 1
                             ? "bg-gray-200 text-gray-400"
-                            : "bg-blue-500 text-white"
+                            : "bg-blue-500 text-white hover:bg-blue-600"
                     }`}
                 >
-                    {">"}
+                    <ChevronRight size={18} />
                 </button>
             </div>
         </div>
@@ -141,88 +155,59 @@ export default function RewardList({
 }
 
 /* =========================
-   🔽 Internal Component (UI giữ nguyên)
+   🔽 Internal Component
 ========================= */
 
-function RewardItem({
-                        reward,
-                        userPoints,
-                        onRedeem
-                    }: {
+const RewardItem = memo(function RewardItem({
+                                                reward,
+                                                userPoints,
+                                                onRedeem
+                                            }: {
     reward: Reward
     userPoints: number
-    onRedeem: (reward: Reward, quantity: number, shippingInfo: ShippingInfo, proofImage: string[]) => void
+    onRedeem: (
+        reward: Reward,
+        quantity: number
+    ) => void
 }) {
     const [quantity, setQuantity] = useState(1)
     const [showError, setShowError] = useState(false)
     const [showForm, setShowForm] = useState(false)
-    const [files, setFiles] = useState<File[]>([])
 
-    const [shippingInfo, setShippingInfo] = useState<ShippingInfo>({
-        name: "",
-        phone: "",
-        address: ""
-    })
-    const uploadImage = async (file: File): Promise<string> => {
-        const formData = new FormData()
-        formData.append("file", file)
-
-        const res = await fetch("/api/upload", {
-            method: "POST",
-            body: formData
-        })
-
-        const data = await res.json()
-
-        console.log("STATUS:", res.status)
-        console.log("UPLOAD RESPONSE:", data) // 👈 cực kỳ quan trọng
-
-        if (!res.ok || !data.url) {
-            throw new Error(data.error || "Upload failed")
-        }
-
-        return data.url
-    }
-
-    const totalPoints = reward.required_points * quantity
+    const totalPoints =
+        reward.required_points * quantity
 
     const increase = () => {
-        if (quantity < reward.stock) setQuantity(q => q + 1)
+        if (quantity < reward.stock) {
+            setQuantity(q => q + 1)
+        }
     }
 
     const decrease = () => {
-        if (quantity > 1) setQuantity(q => q - 1)
+        if (quantity > 1) {
+            setQuantity(q => q - 1)
+        }
     }
 
     const handleRedeemClick = () => {
-        if (reward.stock < quantity || userPoints < totalPoints) {
+        if (
+            reward.stock < quantity ||
+            userPoints < totalPoints
+        ) {
             setShowError(true)
             return
         }
+
         setShowForm(true)
     }
 
     const handleSubmit = async () => {
-        if (!shippingInfo.name || !shippingInfo.phone || !shippingInfo.address) {
-            alert("Vui lòng nhập đầy đủ thông tin")
-            return
-        }
-
-        if (files.length !== 2) {
-            alert("Vui lòng upload đúng 2 ảnh")
-            return
-        }
-
         try {
-            // ✅ upload 2 ảnh song song
-            const imageUrls = await Promise.all(files.map(uploadImage))
-            console.log('imageUrls', imageUrls)
-
-            onRedeem(reward, quantity, shippingInfo, imageUrls)
+            await onRedeem(reward, quantity)
 
             setShowForm(false)
         } catch (error) {
-            alert("Upload ảnh thất bại")
+            alert("Có lỗi xảy ra")
         }
     }
 
@@ -265,7 +250,9 @@ function RewardItem({
                             onClick={decrease}
                             disabled={quantity === 1}
                             className={`w-8 h-8 flex items-center justify-center rounded-full transition ${
-                                quantity === 1 ? "text-gray-300" : "hover:bg-gray-200"
+                                quantity === 1
+                                    ? "text-gray-300"
+                                    : "hover:bg-gray-200"
                             }`}
                         >
                             -
@@ -277,9 +264,13 @@ function RewardItem({
 
                         <button
                             onClick={increase}
-                            disabled={quantity === reward.stock}
+                            disabled={
+                                quantity === reward.stock
+                            }
                             className={`w-8 h-8 flex items-center justify-center rounded-full transition ${
-                                quantity === reward.stock ? "text-gray-300" : "hover:bg-gray-200"
+                                quantity === reward.stock
+                                    ? "text-gray-300"
+                                    : "hover:bg-gray-200"
                             }`}
                         >
                             +
@@ -295,7 +286,9 @@ function RewardItem({
                                 : "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-md active:scale-95"
                         }`}
                     >
-                        {reward.stock === 0 ? "Hết hàng" : "Đổi ngay"}
+                        {reward.stock === 0
+                            ? "Hết hàng"
+                            : "Đổi ngay"}
                     </button>
                 </div>
             </div>
@@ -307,11 +300,17 @@ function RewardItem({
                         <h2 className="text-lg font-semibold text-red-500 mb-2">
                             Không đủ điểm
                         </h2>
+
                         <p className="text-gray-600 mb-4">
-                            Bạn cần <b>{totalPoints}</b> điểm nhưng hiện chỉ có <b>{userPoints}</b> điểm.
+                            Bạn cần{" "}
+                            <b>{totalPoints}</b> điểm nhưng hiện
+                            chỉ có <b>{userPoints}</b> điểm.
                         </p>
+
                         <button
-                            onClick={() => setShowError(false)}
+                            onClick={() =>
+                                setShowError(false)
+                            }
                             className="px-4 py-2 bg-blue-500 text-white rounded-xl"
                         >
                             Đóng
@@ -320,67 +319,34 @@ function RewardItem({
                 </div>
             )}
 
-            {/* Modal form */}
+            {/* Modal xác nhận */}
             {showForm && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 w-[380px] shadow-xl">
-                        <h2 className="text-lg font-semibold mb-4">
-                            Thông tin nhận quà
-                        </h2>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="w-full max-w-[380px] rounded-3xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="text-center">
+                            <h2 className="text-xl font-bold text-gray-800">
+                                Xác nhận đổi quà
+                            </h2>
 
-                        <div className="space-y-3">
-                            <input
-                                type="text"
-                                placeholder="Họ và tên"
-                                value={shippingInfo.name}
-                                onChange={(e) =>
-                                    setShippingInfo({ ...shippingInfo, name: e.target.value })
-                                }
-                                className="w-full border rounded-xl px-3 py-2"
-                            />
-
-                            <input
-                                type="text"
-                                placeholder="Số điện thoại"
-                                value={shippingInfo.phone}
-                                onChange={(e) =>
-                                    setShippingInfo({ ...shippingInfo, phone: e.target.value })
-                                }
-                                className="w-full border rounded-xl px-3 py-2"
-                            />
-
-                            <textarea
-                                placeholder="Địa chỉ nhận"
-                                value={shippingInfo.address}
-                                onChange={(e) =>
-                                    setShippingInfo({ ...shippingInfo, address: e.target.value })
-                                }
-                                className="w-full border rounded-xl px-3 py-2"
-                            />
-
-                            <input
-                                type="file"
-                                multiple
-                                accept="image/*"
-                                onChange={(e) => {
-                                    if (!e.target.files) return
-                                    setFiles(Array.from(e.target.files).slice(0, 2))
-                                }}
-                                className="w-full border rounded-xl px-3 py-2"
-                            />
+                            <p className="mt-2 text-sm text-gray-500">
+                                Bạn có chắc muốn đổi phần quà này
+                                không?
+                            </p>
                         </div>
 
-                        <div className="mt-5 flex justify-end gap-3">
+                        <div className="mt-6 flex items-center gap-3">
                             <button
-                                onClick={() => setShowForm(false)}
-                                className="px-4 py-2 rounded-xl bg-gray-200"
+                                onClick={() =>
+                                    setShowForm(false)
+                                }
+                                className="flex-1 rounded-2xl border border-gray-200 bg-gray-100 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-200 active:scale-95"
                             >
                                 Huỷ
                             </button>
 
                             <button
                                 onClick={handleSubmit}
-                                className="px-4 py-2 rounded-xl bg-blue-500 text-white"
+                                className="flex-1 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg active:scale-95"
                             >
                                 Xác nhận
                             </button>
@@ -390,4 +356,4 @@ function RewardItem({
             )}
         </>
     )
-}
+})

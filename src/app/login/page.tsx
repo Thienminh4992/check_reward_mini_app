@@ -63,12 +63,12 @@ export default function LoginPage() {
             });
 
             if ("needs_register" in result && result.needs_register) {
-                router.replace("/register");
+                window.location.href = "/register";
                 return;
             }
 
             if (result.success) {
-                router.replace("/home");
+                window.location.href = "/home";
                 return;
             }
 
@@ -95,7 +95,12 @@ export default function LoginPage() {
                         Nhập UID và mật khẩu BingX của bạn
                     </p>
 
-                    <div className="flex flex-col gap-4">
+                    <form className="flex flex-col gap-4"
+                          onSubmit={(e) => {
+                              e.preventDefault();
+                              void handleSubmit();
+                          }}
+                    >
                         <input
                             placeholder="UID"
                             value={uid}
@@ -120,7 +125,7 @@ export default function LoginPage() {
                         )}
 
                         <button
-                            type="button"
+                            type="submit"
                             onClick={() => void handleSubmit()}
                             disabled={loading}
                             className="bg-blue-600 text-white p-3 rounded-lg disabled:opacity-50 font-medium"
@@ -135,7 +140,7 @@ export default function LoginPage() {
                         >
                             Chưa có tài khoản? Đăng ký
                         </button>
-                    </div>
+                    </form>
                 </div>
             </div>
         </div>

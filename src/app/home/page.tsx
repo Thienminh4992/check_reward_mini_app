@@ -1,19 +1,12 @@
+// src/app/home/page.tsx
 "use client";
 
-import {
-    useEffect,
-    useState,
-    useCallback,
-    useMemo,
-} from "react";
-
+import {useEffect, useState, useCallback, useMemo,} from "react";
 import { useRouter } from "next/navigation";
-
 import Header from "@/components/Header";
 import UserCard from "@/components/UserCard";
-import PointsCard from "@/components/PointsCard";
 import RewardHistory from "@/components/RewardHistory";
-import RewardList from "@/components/RewardList";
+// import RewardList from "@/components/RewardList";
 
 import { useUser } from "@/context/UserContext";
 
@@ -22,6 +15,18 @@ import { Reward } from "@/types/reward";
 
 import { getRewards } from "@/app/services/reward";
 
+import dynamic from "next/dynamic";
+
+const RewardList = dynamic(
+    () => import("@/components/RewardList"),
+    {
+        loading: () => (
+            <div className="p-4 text-center text-gray-400">
+                Đang tải danh sách quà...
+            </div>
+        ),
+    }
+);
 export default function HomePage() {
     const router = useRouter();
 
@@ -36,7 +41,7 @@ export default function HomePage() {
         Reward[]
     >([]);
 
-    const [loading, setLoading] = useState(true);
+    // const [loading, setLoading] = useState(true);
 
     const [historyOpen, setHistoryOpen] =
         useState(false);
@@ -62,19 +67,30 @@ export default function HomePage() {
 
         setDashboard(data);
 
-        setUser({
-            id: data.user.id,
-            telegram_id: data.user.telegram_id,
-            telegram_name: data.user.telegram_name,
-            uid: data.user.uid,
-            name: data.user.name || "Thành viên",
-            email: data.user.email || "",
-            address: data.user.address || "",
-            phone: data.user.phone || "",
-            role: data.user.role,
-            available_point: data.user.available_point,
-            earned_point: data.user.earned_point,
-            redeemed_point: data.user.redeemed_point,
+        setUser((prev) => {
+            if (
+                prev &&
+                prev.available_point === data.user.available_point &&
+                prev.earned_point === data.user.earned_point &&
+                prev.redeemed_point === data.user.redeemed_point
+            ) {
+                return prev;
+            }
+
+            return {
+                id: data.user.id,
+                telegram_id: data.user.telegram_id,
+                telegram_name: data.user.telegram_name,
+                uid: data.user.uid,
+                name: data.user.name || "Thành viên",
+                email: data.user.email || "",
+                address: data.user.address || "",
+                phone: data.user.phone || "",
+                role: data.user.role,
+                available_point: data.user.available_point,
+                earned_point: data.user.earned_point,
+                redeemed_point: data.user.redeemed_point,
+            };
         });
 
         return data;
@@ -98,7 +114,7 @@ export default function HomePage() {
                     fetchRewards(),
                 ]);
             } finally {
-                setLoading(false);
+                // setLoading(false);
             }
         };
 
@@ -112,34 +128,35 @@ export default function HomePage() {
         ]);
     }, [fetchUser, fetchRewards]);
 
-    const rewardsHistory = useMemo(() => {
-        return (
-            dashboard?.reward_history_items ??
-            []
-        ).map((item) => ({
-            id: item.id,
-            name: item.name,
-            points_change:
-            item.points_change,
-            description:
-            item.description,
-            source: item.source,
-            status: item.status,
-            icon: item.icon,
-        }));
-    }, [dashboard]);
+    const rewardsHistory =
+        dashboard?.reward_history_items?.map(
+            (item) => ({
+                id: item.id,
+                name: item.name,
+                points_change: item.points_change,
+                description: item.description,
+                source: item.source,
+                status: item.status,
+                icon: item.icon,
+            })
+        ) ?? [];
 
-    if (loading || !dashboard || !user) {
+    if (!dashboard || !user) {
         return (
-            <div className="min-h-screen flex items-center justify-center">
-                <div className="text-gray-400 animate-pulse">
+            <div className="h-screen flex flex-col bg-gray-100">
+                <Header />
+
+                <div className="animate-pulse p-4 space-y-4">
+                    <div className="h-32 bg-gray-200 rounded-2xl" />
+                    <div className="h-24 bg-gray-200 rounded-2xl" />
+                    <div className="h-96 bg-gray-200 rounded-2xl" />
                 </div>
             </div>
         );
     }
 
     return (
-        <div>
+        <div className="h-screen flex flex-col overflow-hidden">
             <Header />
 
             <UserCard
@@ -149,14 +166,13 @@ export default function HomePage() {
                 }
             />
 
-            {/*<PointsCard user={user} />*/}
-
-
-
-            <RewardList
-                rewards={rewards}
-                onReload={reloadDashboard}
-            />
+            {/* CHỈ DANH SÁCH QUÀ CUỘN */}
+            <div className="flex-1 min-h-0 overflow-y-auto pb-20 overscroll-contain">
+                <RewardList
+                    rewards={rewards}
+                    onReload={reloadDashboard}
+                />
+            </div>
 
             {historyOpen && (
                 <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center bg-black/40">

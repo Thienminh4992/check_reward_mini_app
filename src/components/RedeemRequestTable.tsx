@@ -17,7 +17,10 @@ export default function RedeemRequestTable({ items, onApproved }: Props) {
     const [rejectId, setRejectId] = useState<string | null>(null)
     const [rejectReason, setRejectReason] = useState("")
     const [submitting, setSubmitting] = useState(false)
-    // const [selectedImage, setSelectedImage] = useState<string | null>(null);
+
+    // 👇 thêm state modal user detail
+    const [selectedUser, setSelectedUser] = useState<RedeemRequest | null>(null)
+
     const handleApprove = async () => {
         if (!approveId) return
 
@@ -43,8 +46,9 @@ export default function RedeemRequestTable({ items, onApproved }: Props) {
         try {
             setSubmitting(true)
             await rejectRedeemRequest(rejectId, rejectReason)
-            // ✅ clear rewards cache
+
             sessionStorage.removeItem("rewards")
+
             setRejectId(null)
             setRejectReason("")
             onApproved()
@@ -77,34 +81,19 @@ export default function RedeemRequestTable({ items, onApproved }: Props) {
                         className="bg-white rounded-2xl shadow-sm hover:shadow-md transition p-4 flex justify-between items-start"
                     >
                         <div className="flex-1 min-w-0">
-                            <h3 className="font-semibold text-gray-800 text-base truncate">
-                                {item.telegram_name}
-                            </h3>
+
+                            {/* 👇 CLICK NAME */}
+                            <button
+                                onClick={() => setSelectedUser(item)}
+                                className="font-semibold text-gray-800 text-base hover:text-blue-600 transition text-left"
+                            >
+                                {item.name}
+                            </button>
 
                             <p className="text-sm text-gray-500 mt-1 truncate">
                                 Đổi {item.quantity} {item.reward_name}
                             </p>
-
-                            {/*<div className="mt-2 space-y-1 text-xs text-gray-400">*/}
-                            {/*    <p>📞 {item.shipping_info?.phone}</p>*/}
-                            {/*    <p className="truncate">📍 {item.shipping_info?.address}</p>*/}
-                            {/*</div>*/}
-
-                            {/*{item.proof_image && item.proof_image.length > 0 && (*/}
-                            {/*    <div className="mt-3 flex gap-2 overflow-x-auto">*/}
-                            {/*        {item.proof_image.map((img: string, index: number) => (*/}
-                            {/*            <img*/}
-                            {/*                key={index}*/}
-                            {/*                src={img}*/}
-                            {/*                alt={`proof-${index}`}*/}
-                            {/*                className="w-16 h-16 rounded-lg object-cover border cursor-pointer hover:opacity-80"*/}
-                            {/*                onClick={() => setSelectedImage(img)}*/}
-                            {/*            />*/}
-                            {/*        ))}*/}
-                            {/*    </div>*/}
-                            {/*)}*/}
                         </div>
-
 
                         <div className="ml-4 flex flex-col items-end gap-2">
                             {item.status === "pending" && (
@@ -118,7 +107,7 @@ export default function RedeemRequestTable({ items, onApproved }: Props) {
 
                                     <button
                                         onClick={() => setRejectId(item.id)}
-                                        className="px-3 py-1 text-xs font-medium rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition"
+                                        className="px-3 py-1 text-xs font-medium rounded-lg bg-red-500 text-white hover:bg-red-600 transition"
                                     >
                                         Từ chối
                                     </button>
@@ -128,32 +117,92 @@ export default function RedeemRequestTable({ items, onApproved }: Props) {
                     </div>
                 ))}
             </div>
-            {/*/!* ViEW IMAGE MODAL *!/*/}
-            {/*{selectedImage && (*/}
-            {/*    <div*/}
-            {/*        className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"*/}
-            {/*        onClick={() => setSelectedImage(null)}*/}
-            {/*    >*/}
-            {/*        <img*/}
-            {/*            src={selectedImage}*/}
-            {/*            alt="preview"*/}
-            {/*            className="max-w-[90%] max-h-[90%] rounded-xl shadow-lg"*/}
-            {/*            onClick={(e) => e.stopPropagation()}*/}
-            {/*        />*/}
-            {/*    </div>*/}
-            {/*)}*/}
+
+            {/* USER DETAIL MODAL */}
+            {selectedUser && (
+                <div
+                    className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4"
+                    onClick={() => setSelectedUser(null)}
+                >
+                    <div
+                        className="bg-white w-full max-w-sm rounded-2xl p-4 shadow-xl"
+                        onClick={(e) => e.stopPropagation()}
+                    >
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setSelectedUser(null)}
+                                className="text-gray-400 hover:text-gray-600 text-sm"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        {/* HEADER */}
+                        <div className="flex flex-col items-center -mt-2 mb-4">
+                            <div className="w-14 h-14 rounded-full bg-blue-500 text-white flex items-center justify-center text-lg font-semibold shadow">
+                                {selectedUser.name?.charAt(0).toUpperCase()}
+                            </div>
+
+                            <h2 className="mt-2 text-base font-semibold text-gray-800 text-center">
+                                {selectedUser.name}
+                            </h2>
+
+                            <p className="text-xs text-gray-400 text-center">
+                                Thông tin người đổi quà
+                            </p>
+                        </div>
+
+                        {/* INFO */}
+                        <div className="space-y-2 text-sm">
+                            <div className="bg-gray-50 rounded-xl px-3 py-2">
+                    <span className="font-medium text-gray-700">
+                        Gmail:
+                    </span>{" "}
+                                <span className="text-gray-800 break-all">
+                        {selectedUser.email || "Chưa cập nhật"}
+                    </span>
+                            </div>
+
+                            <div className="bg-gray-50 rounded-xl px-3 py-2">
+                    <span className="font-medium text-gray-700">
+                        SĐT:
+                    </span>{" "}
+                                <span className="text-gray-800">
+                        {selectedUser.phone_number || "Chưa cập nhật"}
+                    </span>
+                            </div>
+
+                            <div className="bg-gray-50 rounded-xl px-3 py-2">
+                    <span className="font-medium text-gray-700">
+                        Địa chỉ:
+                    </span>{" "}
+                                <span className="text-gray-800">
+                        {selectedUser.address || "Chưa cập nhật"}
+                    </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* APPROVE MODAL */}
             {approveId && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-xl">
-                        <h2 className="text-lg font-semibold text-gray-800">
-                            Xác nhận duyệt yêu cầu?
-                        </h2>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="text-center">
+                            <h2 className="text-xl font-bold text-gray-800">
+                                Xác nhận duyệt yêu cầu?
+                            </h2>
 
-                        <div className="mt-4 flex justify-end gap-3">
+                            <p className="mt-2 text-sm text-gray-500">
+                                Yêu cầu sẽ được xác nhận và xử lý.
+                            </p>
+                        </div>
+
+                        <div className="mt-6 flex items-center gap-3">
                             <button
                                 onClick={() => setApproveId(null)}
-                                className="px-4 py-2 rounded-xl bg-gray-100"
+                                className="flex-1 rounded-2xl border border-gray-200 bg-gray-100 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-200 active:scale-95"
                             >
                                 Huỷ
                             </button>
@@ -161,9 +210,9 @@ export default function RedeemRequestTable({ items, onApproved }: Props) {
                             <button
                                 onClick={handleApprove}
                                 disabled={submitting}
-                                className="px-4 py-2 rounded-xl bg-blue-600 text-white"
+                                className="flex-1 rounded-2xl bg-gradient-to-r from-blue-500 to-blue-600 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg active:scale-95 disabled:opacity-60"
                             >
-                                Xác nhận
+                                {submitting ? "Đang xử lý..." : "Xác nhận"}
                             </button>
                         </div>
                     </div>
@@ -172,27 +221,33 @@ export default function RedeemRequestTable({ items, onApproved }: Props) {
 
             {/* REJECT MODAL */}
             {rejectId && (
-                <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
-                    <div className="bg-white rounded-2xl p-6 w-[90%] max-w-md shadow-xl">
-                        <h2 className="text-lg font-semibold text-gray-800">
-                            Nhập lý do từ chối
-                        </h2>
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+                    <div className="w-full max-w-md rounded-3xl bg-white p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="text-center">
+                            <h2 className="text-xl font-bold text-gray-800">
+                                Từ chối yêu cầu
+                            </h2>
+
+                            <p className="mt-2 text-sm text-gray-500">
+                                Vui lòng nhập lý do từ chối.
+                            </p>
+                        </div>
 
                         <textarea
                             value={rejectReason}
                             onChange={(e) => setRejectReason(e.target.value)}
                             placeholder="Nhập lý do..."
-                            className="w-full mt-4 border rounded-xl p-3 outline-none"
                             rows={4}
+                            className="mt-5 w-full rounded-2xl border border-gray-200 p-4 text-sm outline-none transition focus:border-red-400 focus:ring-2 focus:ring-red-100"
                         />
 
-                        <div className="mt-4 flex justify-end gap-2 w-full">
+                        <div className="mt-6 flex items-center gap-3">
                             <button
                                 onClick={() => {
                                     setRejectId(null)
                                     setRejectReason("")
                                 }}
-                                className="px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600"
+                                className="flex-1 rounded-2xl border border-gray-200 bg-gray-100 py-3 text-sm font-medium text-gray-700 transition hover:bg-gray-200 active:scale-95"
                             >
                                 Huỷ
                             </button>
@@ -200,7 +255,7 @@ export default function RedeemRequestTable({ items, onApproved }: Props) {
                             <button
                                 onClick={handleReject}
                                 disabled={submitting}
-                                className="px-4 py-2 rounded-xl bg-blue-500 text-white hover:bg-blue-600"
+                                className="flex-1 rounded-2xl bg-gradient-to-r from-red-500 to-red-600 py-3 text-sm font-semibold text-white shadow-md transition hover:shadow-lg active:scale-95 disabled:opacity-60"
                             >
                                 {submitting ? "Đang gửi..." : "Xác nhận"}
                             </button>

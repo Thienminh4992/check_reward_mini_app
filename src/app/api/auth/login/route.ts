@@ -86,6 +86,7 @@ export async function POST(req: NextRequest) {
             userId: result.user.id,
             telegramId: telegramUser.id,
         });
+        console.log("TOKEN:", token);
 
         const response = NextResponse.json({
             success: true,
@@ -94,11 +95,11 @@ export async function POST(req: NextRequest) {
 
         response.cookies.set("session_token", token, {
             httpOnly: true,
-            secure: process.env.NODE_ENV === "production",
+            secure: true,
+            sameSite: "none",
             path: "/",
             maxAge: 60 * 60 * 24 * 7,
         });
-
         return response;
     } catch (error) {
         console.error(error);
