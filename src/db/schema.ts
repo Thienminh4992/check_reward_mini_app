@@ -58,6 +58,7 @@ export interface RedeemRequest {
 
 export interface UserPointsHistory {
     id: string;
+    reward_id: string;
     user_id: string;
     points_change: number;
     source: string;

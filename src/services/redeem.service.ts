@@ -67,6 +67,7 @@ export const redeemService = {
             await userRepository.insertPointHistory(
                 {
                     user_id: payload.user_id,
+                    reward_id: payload.reward_id,
                     points_change: -requiredPoints,
                     source: "redeem",
                     description: `Redeemed ${reward.name}`,

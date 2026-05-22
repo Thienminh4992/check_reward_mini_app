@@ -312,6 +312,7 @@ export const userRepository = {
     // =========================
     insertPointHistory(data: {
         user_id: string;
+        reward_id: string;
         points_change: number;
         source: string;
         description?: string;
@@ -319,13 +320,14 @@ export const userRepository = {
         return queryOne(
             `
       INSERT INTO user_points_history (
-        user_id, points_change, source, description
+        user_id, reward_id, points_change, source, description
       )
-      VALUES ($1,$2,$3,$4)
+      VALUES ($1,$2,$3,$4,$5)
       RETURNING id
       `,
             [
                 data.user_id,
+                data.reward_id,
                 data.points_change,
                 data.source,
                 data.description ?? null,

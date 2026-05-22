@@ -132,6 +132,7 @@ export default function HomePage() {
         dashboard?.reward_history_items?.map(
             (item) => ({
                 id: item.id,
+                reward_id: item.reward_id,
                 name: item.name,
                 points_change: item.points_change,
                 description: item.description,
@@ -140,6 +141,16 @@ export default function HomePage() {
                 icon: item.icon,
             })
         ) ?? [];
+
+    const redeemedRewardIds = useMemo(() => {
+        return new Set(
+            dashboard?.reward_history_items
+                ?.filter(
+                    (item) => item.source === "redeem"
+                )
+                ?.map((item) => item.reward_id)
+        );
+    }, [dashboard]);
 
     if (!dashboard || !user) {
         return (
@@ -170,6 +181,7 @@ export default function HomePage() {
             <div className="flex-1 min-h-0 overflow-y-auto pb-20 overscroll-contain">
                 <RewardList
                     rewards={rewards}
+                    redeemedRewardIds={redeemedRewardIds}
                     onReload={reloadDashboard}
                 />
             </div>

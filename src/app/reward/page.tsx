@@ -39,7 +39,10 @@ export default function RewardPage() {
     return (
         <div>
             <Header />
-            <RewardList rewards={rewards} />
+            <RewardList
+                rewards={rewards}
+                redeemedRewardIds={new Set()}
+            />
         </div>
     )
 }

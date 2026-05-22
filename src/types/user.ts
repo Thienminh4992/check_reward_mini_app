@@ -15,6 +15,7 @@ export interface User {
 
 export interface RewardHistoryItem {
     id: string
+    reward_id: string
     name: string
     points_change: number
     description: string

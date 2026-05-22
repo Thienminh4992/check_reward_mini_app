@@ -8,11 +8,13 @@ import { useUser } from "@/context/UserContext"
 
 interface RewardListProps {
     rewards: Reward[]
+    redeemedRewardIds: Set<string>
     onReload?: () => Promise<void>
 }
 
 export default function RewardList({
                                        rewards,
+                                       redeemedRewardIds,
                                        onReload
                                    }: RewardListProps) {
     const { user, setUser } = useUser()
@@ -104,6 +106,9 @@ export default function RewardList({
                         key={reward.id}
                         reward={reward}
                         userPoints={userPoints}
+                        isRedeemed={redeemedRewardIds.has(
+                            reward.id
+                        )}
                         onRedeem={handleRedeem}
                     />
                 ))}
@@ -161,10 +166,12 @@ export default function RewardList({
 const RewardItem = memo(function RewardItem({
                                                 reward,
                                                 userPoints,
+                                                isRedeemed,
                                                 onRedeem
                                             }: {
     reward: Reward
     userPoints: number
+    isRedeemed: boolean
     onRedeem: (
         reward: Reward,
         quantity: number
@@ -277,19 +284,33 @@ const RewardItem = memo(function RewardItem({
                         </button>
                     </div>
 
-                    <button
-                        onClick={handleRedeemClick}
-                        disabled={reward.stock === 0}
-                        className={`px-4 py-2 text-sm font-medium rounded-xl transition ${
-                            reward.stock === 0
-                                ? "bg-gray-300 text-white cursor-not-allowed"
-                                : "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-md active:scale-95"
-                        }`}
-                    >
-                        {reward.stock === 0
-                            ? "Hết hàng"
-                            : "Đổi ngay"}
-                    </button>
+                    <div className="flex flex-col items-end">
+                        <button
+                            onClick={handleRedeemClick}
+                            disabled={
+                                reward.stock === 0 ||
+                                isRedeemed
+                            }
+                            className={`px-4 py-2 text-sm font-medium rounded-xl transition ${
+                                reward.stock === 0 ||
+                                isRedeemed
+                                    ? "bg-gray-300 text-white cursor-not-allowed"
+                                    : "bg-gradient-to-r from-blue-500 to-blue-600 text-white hover:shadow-md active:scale-95"
+                            }`}
+                        >
+                            {isRedeemed
+                                ? "Đã đổi"
+                                : reward.stock === 0
+                                    ? "Hết hàng"
+                                    : "Đổi ngay"}
+                        </button>
+
+                        {isRedeemed && (
+                            <span className="text-red-500 text-xs mt-1">
+                                Quà đã đổi
+                            </span>
+                        )}
+                    </div>
                 </div>
             </div>
 

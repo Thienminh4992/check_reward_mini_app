@@ -165,6 +165,7 @@ export const userService = {
         console.log("available_point", user.available_point);
         const reward_history_items: RewardHistoryItem[] = history.map((h) => ({
             id: h.id,
+            reward_id: h.reward_id,
             name: h.description ?? h.source,
             points_change: h.points_change,
             description: h.description ?? "",
@@ -239,6 +240,7 @@ export const userService = {
             await userRepository.insertPointHistory(
                 {
                     user_id: payload.user_id,
+                    reward_id: payload.reward_id,
                     points_change: -requiredPoints,
                     source: "redeem",
                     description: `Redeemed ${reward.name}`,
@@ -318,6 +320,7 @@ export const userService = {
             await userRepository.insertPointHistory(
                 {
                     user_id: request.user_id,
+                    reward_id: request.reward_id,
                     points_change: refundPoints,
                     source: "refund",
                     description: `Refund for rejected redeem request`,
