@@ -4,12 +4,14 @@ import { userService } from "@/services/user.service";
 export async function GET(req: NextRequest) {
     try {
         const status =
-            req.nextUrl.searchParams.get("status") || "pending";
+            req.nextUrl.searchParams.get("status") ||
+            "pending";
 
         const items =
             await userService.getRedeemRequests(status);
 
-        return NextResponse.json(items);
+        // luôn trả array
+        return NextResponse.json(items ?? []);
     } catch (error) {
         console.error(error);
 

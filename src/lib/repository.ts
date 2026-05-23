@@ -76,7 +76,7 @@ export const userRepository = {
     getRedeemedHistory(userId: string, client?: PoolClient) {
         return query<UserPointsHistory>(
             `
-      SELECT id, points_change, source, description, created_at
+      SELECT id, reward_id, points_change, source, description, created_at
       FROM user_points_history
       WHERE user_id = $1
       ORDER BY created_at DESC
@@ -286,7 +286,7 @@ export const userRepository = {
     // =========================
     // USER POINTS
     // =========================
-    updateUserPoints(userId: string, delta: number, client: PoolClient) {
+    updateUserPoints(userId: string, delta: number,  client?: PoolClient) {
         return execute(
             `
       UPDATE users
@@ -358,5 +358,117 @@ export const userRepository = {
             [status],
             client
         );
-    }
+    },
+
+    syncEarnedPoints(userId: string, earnedFromVolume: number, client: PoolClient) {
+        return queryOne<User>(
+            `
+        UPDATE users
+        SET
+            earned_point    = $1,
+            available_point = $1 - redeemed_point,
+            updated_at      = CURRENT_TIMESTAMP
+        WHERE id = $2
+          AND earned_point < $1          -- idempotent, chỉ update khi có điểm mới
+        RETURNING ${USER_SAFE_SQL}
+        `,
+            [earnedFromVolume, userId],
+            client
+        );
+    },
+
+// Dùng cho createRequest / rejectRequest — chỉ động vào redeemed_point
+    adjustRedeemedPoints(userId: string, delta: number, client: PoolClient) {
+        return execute(
+            `
+        UPDATE users
+        SET
+            redeemed_point  = redeemed_point + $1,
+            available_point = earned_point - (redeemed_point + $1),
+            updated_at      = CURRENT_TIMESTAMP
+        WHERE id = $2
+        `,
+            [delta, userId],
+            client
+        );
+    },
+
+// =========================
+// ADMIN — REWARD CRUD
+// =========================
+    createReward(data: {
+        name: string;
+        description?: string | null;
+        image_url?: string | null;
+        required_points: number;
+        stock: number;
+    }, client?: PoolClient) {
+        return queryOne<Reward>(
+            `
+    INSERT INTO rewards (id, name, description, image_url, required_points, stock, is_active)
+    VALUES ($1, $2, $3, $4, $5, $6, true)
+    RETURNING id, name, description, image_url, required_points, stock
+    `,
+            [
+                crypto.randomUUID(),
+                data.name,
+                data.description ?? null,
+                data.image_url ?? null,
+                data.required_points,
+                data.stock,
+            ],
+            client
+        );
+    },
+
+    updateReward(
+        rewardId: string,
+        data: {
+            name: string;
+            description?: string | null;
+            image_url?: string | null;
+            required_points: number;
+            stock: number;
+        },
+        client?: PoolClient
+    ) {
+        return queryOne<Reward>(
+            `
+    UPDATE rewards
+    SET
+        name            = $2,
+        description     = $3,
+        image_url       = $4,
+        required_points = $5,
+        stock           = $6,
+        updated_at      = NOW()
+    WHERE id = $1
+    RETURNING id, name, description, image_url, required_points, stock
+    `,
+            [
+                rewardId,
+                data.name,
+                data.description ?? null,
+                data.image_url ?? null,
+                data.required_points,
+                data.stock,
+            ],
+            client
+        );
+    },
+
+    /** Xoá mềm — không xoá khỏi DB, chỉ ẩn khỏi danh sách */
+    deleteReward(rewardId: string, client?: PoolClient) {
+        return queryOne(
+            `
+    UPDATE rewards
+    SET is_active = false, updated_at = NOW()
+    WHERE id = $1
+    RETURNING id
+    `,
+            [rewardId],
+            client
+        );
+    },
 };
+

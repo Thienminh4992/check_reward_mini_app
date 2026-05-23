@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
             secure: true,
             sameSite: "none",
             path: "/",
-            maxAge: 60 * 60 * 24 * 7,
+            maxAge: 60 * 15, // ← 15 phút tính bằng giây maxAge: 60 * 60 * 24 * 7,
         });
         return response;
     } catch (error) {

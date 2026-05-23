@@ -16,7 +16,7 @@ export interface SessionPayload {
 
 export function signToken(payload: SessionPayload) {
     return jwt.sign(payload, JWT_SECRET, {
-        expiresIn: "7d",
+        expiresIn: "15m", // ← đổi từ "7d"
     });
 }
 

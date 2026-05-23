@@ -151,7 +151,7 @@ export default function HomePage() {
                 ?.map((item) => item.reward_id)
         );
     }, [dashboard]);
-
+    console.log("REDEEMEDREWARDIDS", redeemedRewardIds)
     if (!dashboard || !user) {
         return (
             <div className="h-screen flex flex-col bg-gray-100">

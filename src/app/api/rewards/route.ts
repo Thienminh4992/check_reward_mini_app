@@ -1,10 +1,10 @@
 // src/app/api/rewards/route.ts
 import { NextResponse } from "next/server";
-import { rewardService } from "@/services/reward.service";
+import { userService } from "@/services/user.service";
 
 export async function GET() {
     try {
-        const rewards = await rewardService.getAvailableRewards();
+        const rewards = await userService.getAvailableRewards();
 
         return NextResponse.json({
             success: true,

@@ -43,7 +43,7 @@ export function verifyTelegramInitData(initData: string, botToken: string): Tele
 
 export function getMockTelegramUser(): TelegramUser {
     return {
-        id: 5661851130,
+        id: 5253676380,
         username: "mock_user",
         first_name: "Mock User",
     };

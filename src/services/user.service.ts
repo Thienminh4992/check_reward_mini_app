@@ -5,7 +5,7 @@ import { userRepository } from "@/lib/repository";
 import type { User } from "@/db/schema";
 import type { RewardHistoryItem } from "@/types/user";
 import {isValidEmail,isValidPhone,} from "@/lib/validators";
-
+import { DatabaseError } from "pg";
 export type UpdateProfileResult =
     | {status: "ok";user: User;}
     | {status: "invalid_name";}
@@ -146,109 +146,141 @@ export const userService = {
     // USER DASHBOARD
     // =========================
     async getDashboard(userId: string) {
-        const user = await userRepository.getUserById(userId);
+        return withTransaction(async (client) => {
+            const user = await userRepository.getUserById(userId, client);
 
+            if (!user) throw new Error("User not found");
 
+            const [history, volumeData] = await Promise.all([
+                userRepository.getRedeemedHistory(userId, client),
+                userRepository.getUserVolumeByUid(user.uid, client),
+            ]);
 
-        if (!user) {
-            throw new Error("User not found");
-        }
+            const volume = Math.round(Number(volumeData?.total_volume_usd || 0));
 
-        const history = await userRepository.getRedeemedHistory(userId);
-        const volumeData = await userRepository.getUserVolumeByUid(user.uid);
-        const volume = Math.round(
-            Number(volumeData?.total_volume_usd || 0)
-        );
-        user.earned_point = volume
-        user.available_point = user.earned_point - user.redeemed_point;
-        console.log("volume", volume);
-        console.log("available_point", user.available_point);
-        const reward_history_items: RewardHistoryItem[] = history.map((h) => ({
-            id: h.id,
-            reward_id: h.reward_id,
-            name: h.description ?? h.source,
-            points_change: h.points_change,
-            description: h.description ?? "",
-            source: h.source,
-            status: "",
-            icon: "",
-        }));
+            // Trả về user đã được update từ DB, hoặc user cũ nếu không có delta
+            const updatedUser =
+                volume > user.earned_point
+                    ? (await userRepository.syncEarnedPoints(user.id, volume, client)) ?? user
+                    : user;
 
-        return {
-            user,
-            history,
-            reward_history_items,
-            volume,
-        };
+            const reward_history_items: RewardHistoryItem[] = history.map((h) => ({
+                id: h.id,
+                reward_id: h.reward_id,
+                name: h.description ?? h.source,
+                points_change: h.points_change,
+                description: h.description ?? "",
+                source: h.source,
+                status: "",
+                icon: "",
+            }));
+
+            return {
+                user: updatedUser,   // ✅ luôn lấy từ DB, không mutate in-memory
+                history,
+                reward_history_items,
+                volume,
+            };
+        });
     },
 
-    // async getRewards() {
-    //     return userRepository.getRewards();
-    // },
-
-    // =========================
-    // CREATE REDEEM REQUEST
-    // =========================
+// =========================
+// CREATE REDEEM REQUEST
+// =========================
     async createRequest(payload: {
         user_id: string;
         reward_id: string;
         quantity: number;
     }) {
         return withTransaction(async (client) => {
-            const user = await userRepository.getUserById(payload.user_id, client);
-            if (!user) throw new Error("User not found");
+            const user = await userRepository.getUserById(
+                payload.user_id,
+                client
+            );
 
-            const reward = await userRepository.getRewardById(payload.reward_id, client);
-            if (!reward) throw new Error("Reward not found");
+            if (!user) {
+                throw new Error("User not found");
+            }
 
-            const requiredPoints = reward.required_points * payload.quantity;
-            console.log("PAYLOAD", payload)
+            const reward = await userRepository.getRewardById(
+                payload.reward_id,
+                client
+            );
+
+            if (!reward) {
+                throw new Error("Reward not found");
+            }
+
+            const requiredPoints =
+                reward.required_points * payload.quantity;
+
+            // Kiểm tra tồn kho
             if (reward.stock < payload.quantity) {
                 throw new Error("Reward out of stock");
             }
-            // console.log("requiredPoints", requiredPoints, "user.available_point", user.available_point)
+
+            // Kiểm tra điểm
             if (user.available_point < requiredPoints) {
                 throw new Error("Not enough points");
             }
 
-            const stockUpdated = await userRepository.decreaseRewardStockSafe(
-                payload.reward_id,
-                payload.quantity,
-                client
-            );
+            // Trừ stock an toàn
+            const stockUpdated =
+                await userRepository.decreaseRewardStockSafe(
+                    payload.reward_id,
+                    payload.quantity,
+                    client
+                );
 
             if (!stockUpdated) {
                 throw new Error("Cannot update reward stock");
             }
 
-            await userRepository.updateUserPoints(
+            // Trừ điểm user
+            await userRepository.adjustRedeemedPoints(
                 payload.user_id,
-                -requiredPoints,
+                requiredPoints,   // bỏ dấu âm — hàm mới nhận số dương, tự cộng vào redeemed
                 client
             );
 
-            const request = await userRepository.createRedeemRequest(
-                {
-                    user_id: payload.user_id,
-                    reward_id: payload.reward_id,
-                    quantity: payload.quantity,
-                    status: "pending",
-                },
-                client
-            );
+            try {
+                // Tạo request đổi quà
+                const request =
+                    await userRepository.createRedeemRequest(
+                        {
+                            user_id: payload.user_id,
+                            reward_id: payload.reward_id,
+                            quantity: payload.quantity,
+                            status: "pending",
+                        },
+                        client
+                    );
 
-            await userRepository.insertPointHistory(
-                {
-                    user_id: payload.user_id,
-                    reward_id: payload.reward_id,
-                    points_change: -requiredPoints,
-                    source: "redeem",
-                    description: `Redeemed ${reward.name}`,
-                },
-                client
-            );
+                // Lưu lịch sử điểm
+                await userRepository.insertPointHistory(
+                    {
+                        user_id: payload.user_id,
+                        reward_id: payload.reward_id,
+                        points_change: -requiredPoints,
+                        source: "redeem",
+                        description: `Bạn đã yêu cầu đổi ${payload.quantity} ${reward.name}`,
+                    },
+                    client
+                );
 
-            return request;
+                return request;
+            } catch (error: unknown) {
+                if (
+                    error instanceof DatabaseError &&
+                    error.code === "23505"
+                ) {
+                    throw new Error(
+                        "Bạn đã đổi quà này rồi"
+                    );
+                }
+
+                throw error;
+            }
         });
     },
 
@@ -269,6 +301,17 @@ export const userService = {
                 requestId,
                 "approved",
                 undefined,
+                client
+            );
+
+            await userRepository.insertPointHistory(
+                {
+                    user_id: request.user_id,
+                    reward_id: request.reward_id,
+                    points_change: 0,
+                    source: "refund",
+                    description: `Admin đã chấp nhận yêu cầu đổi quà`,
+                },
                 client
             );
 
@@ -298,9 +341,9 @@ export const userService = {
 
             const refundPoints = reward.required_points * request.quantity;
 
-            await userRepository.updateUserPoints(
+            await userRepository.adjustRedeemedPoints(
                 request.user_id,
-                refundPoints,
+                -refundPoints,   // âm = hoàn điểm, giảm redeemed_point
                 client
             );
 
@@ -323,7 +366,7 @@ export const userService = {
                     reward_id: request.reward_id,
                     points_change: refundPoints,
                     source: "refund",
-                    description: `Refund for rejected redeem request`,
+                    description: `Admin đã từ chối yêu cầu đổi quà`,
                 },
                 client
             );
@@ -339,6 +382,47 @@ export const userService = {
     // ADMIN
     // =========================
     async getRedeemRequests(status = "pending") {
-        return userRepository.getRedeemRequests(status);
+        const items =
+            await userRepository.getRedeemRequests(status);
+
+        return items ?? [];
+    },
+
+
+    // =========================
+    // REWARD
+    // =========================
+    async getAvailableRewards() {
+        return userRepository.getRewards();
+    },
+
+    // =========================
+    // REWARDS — ADMIN CRUD
+    // =========================
+    createReward(data: {
+        name: string;
+        description?: string | null;
+        image_url?: string | null;
+        required_points: number;
+        stock: number;
+    }) {
+        return userRepository.createReward(data);
+    },
+
+    updateReward(
+        rewardId: string,
+        data: {
+            name: string;
+            description?: string | null;
+            image_url?: string | null;
+            required_points: number;
+            stock: number;
+        }
+    ) {
+        return userRepository.updateReward(rewardId, data);
+    },
+
+    deleteReward(rewardId: string) {
+        return userRepository.deleteReward(rewardId);
     },
 };
