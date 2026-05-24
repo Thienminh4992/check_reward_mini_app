@@ -37,8 +37,19 @@ body {
   scrollbar-color: rgba(156, 163, 175, 0.35) transparent;
 }
 
+/* =========================
+   TABLE STICKY HEADER
+========================= */
+
+.table-sticky thead th {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: #f9fafb;
+}
+
 html,
 body {
   height: 100%;
-  overflow: hidden;
+  /* Removed overflow: hidden — it was blocking inner table scroll */
 }

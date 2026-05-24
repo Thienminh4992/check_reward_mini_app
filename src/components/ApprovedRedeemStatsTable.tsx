@@ -91,29 +91,11 @@ export default function ApprovedRedeemStatsTable() {
             "Redeem Stats"
         )
 
-        const excelBuffer = XLSX.write(
-            workbook,
-            {
-                bookType: "xlsx",
-                type: "array",
-            }
-        )
+        const base64 = XLSX.write(workbook, { bookType: "xlsx", type: "base64" })
 
-        const blob = new Blob(
-            [excelBuffer],
-            {
-                type:
-                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            }
-        )
+        const a = document.createElement("a")
 
-        const url =
-            window.URL.createObjectURL(blob)
-
-        const a =
-            document.createElement("a")
-
-        a.href = url
+        a.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`
 
         a.download = `redeem-stats-page-${page}.xlsx`
 
@@ -122,8 +104,6 @@ export default function ApprovedRedeemStatsTable() {
         a.click()
 
         document.body.removeChild(a)
-
-        window.URL.revokeObjectURL(url)
     }
 
     const totalPages = Math.max(
@@ -144,8 +124,8 @@ export default function ApprovedRedeemStatsTable() {
             </div>
             {/* TABLE */}
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
-                <div className="overflow-x-auto">
-                    <table className="w-full text-[12px]">
+                <div className="overflow-auto max-h-[calc(100vh-240px)] custom-scroll">
+                    <table className="w-full text-[12px] table-sticky">
                         <thead className="bg-gray-50 border-b">
                         <tr className="text-gray-500">
                             <th className="text-left px-3 py-2.5 font-medium">
