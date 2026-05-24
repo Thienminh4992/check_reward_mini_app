@@ -429,8 +429,8 @@ export const userService = {
     },
 
     // =========================
-// ADMIN USERS
-// =========================
+    // ADMIN USERS
+    // =========================
     async getUsers(
         uid = "",
         page = 1,
@@ -464,5 +464,62 @@ export const userService = {
 
     async deleteUser(userId: string) {
         return userRepository.deleteUser(userId)
+    },
+
+    async createUserByAdmin(payload: {
+        uid: string
+        name: string
+        telegram_id: number
+        password: string
+        role?: string
+        email?: string
+    }) {
+        const exists =
+            await userRepository.getByUid(
+                payload.uid
+            )
+
+        if (exists) {
+            throw new Error(
+                "UID already exists"
+            )
+        }
+
+        const password_hash =
+            await hashPassword(
+                payload.password
+            )
+
+        return userRepository.createUserByAdmin(
+            {
+                uid: payload.uid,
+                name: payload.name,
+                telegram_id:
+                payload.telegram_id,
+                telegram_name:
+                payload.name,
+                password_hash,
+                role:
+                    payload.role ??
+                    "user",
+                email:
+                    payload.email ??
+                    null,
+            }
+        )
+    },
+    // =========================
+    // ADMIN STATS
+    // =========================
+    async getApprovedRedeemStats(
+        page = 1,
+        limit = 10
+    ) {
+        return userRepository.getApprovedRedeemStats(
+            {
+                page,
+                limit,
+            }
+        )
     },
 };

@@ -30,3 +30,28 @@ export async function GET(req: NextRequest) {
         )
     }
 }
+
+export async function POST(req: NextRequest) {
+    try {
+        const body = await req.json()
+
+        const user =
+            await userService.createUserByAdmin(
+                body
+            )
+
+        return NextResponse.json(user)
+    } catch (error) {
+        console.error(error)
+
+        return NextResponse.json(
+            {
+                error:
+                    error instanceof Error
+                        ? error.message
+                        : "Create failed",
+            },
+            { status: 500 }
+        )
+    }
+}

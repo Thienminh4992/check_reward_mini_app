@@ -617,5 +617,117 @@ export const userRepository = {
         )
     },
 
+    createUserByAdmin(data: {
+        uid: string
+        name: string
+        telegram_id: number
+        telegram_name?: string | null
+        password_hash: string
+        role?: string
+        email?: string | null
+    }, client?: PoolClient) {
+        return queryOne<User>(
+            `
+        INSERT INTO users (
+            id,
+            telegram_id,
+            telegram_name,
+            uid,
+            name,
+            role,
+            earned_point,
+            redeemed_point,
+            available_point,
+            password_hash,
+            email
+        )
+        VALUES (
+            $1,$2,$3,$4,$5,$6,0,0,0,$7,$8
+        )
+        RETURNING ${USER_SAFE_SQL}
+        `,
+            [
+                crypto.randomUUID(),
+                data.telegram_id,
+                data.telegram_name ?? null,
+                data.uid,
+                data.name,
+                data.role ?? "user",
+                data.password_hash,
+                data.email ?? null,
+            ],
+            client
+        )
+    },
+
+    // =========================
+// ADMIN STATS
+// =========================
+    async getApprovedRedeemStats(
+        params: {
+            page?: number
+            limit?: number
+        },
+        client?: PoolClient
+    ) {
+        const {
+            page = 1,
+            limit = 10,
+        } = params
+
+        const offset = (page - 1) * limit
+
+        const items = await query(
+            `
+        SELECT
+            rr.id,
+            rr.quantity,
+            rr.created_at,
+
+            u.uid,
+            u.name,
+            u.email,
+            u.phone_number,
+
+            r.name as reward_name,
+            r.required_points
+
+        FROM redeem_requests rr
+        JOIN users u
+            ON rr.user_id = u.id
+        JOIN rewards r
+            ON rr.reward_id = r.id
+
+        WHERE rr.status = 'approved'
+
+        ORDER BY rr.created_at DESC
+
+        LIMIT $1
+        OFFSET $2
+        `,
+            [limit, offset],
+            client
+        )
+
+        const countResult = await queryOne<{
+            total: number
+        }>(
+            `
+        SELECT COUNT(*)::int as total
+        FROM redeem_requests
+        WHERE status = 'approved'
+        `,
+            [],
+            client
+        )
+
+        return {
+            items,
+            total: countResult?.total ?? 0,
+            page,
+            limit,
+        }
+    },
+
 };
 

@@ -123,3 +123,56 @@ export async function deleteUser(id: string) {
         throw new Error("Delete failed")
     }
 }
+export async function createUser(
+    payload: {
+        uid: string
+        name: string
+        telegram_id: number
+        password: string
+        role?: string
+        email?: string
+    }
+) {
+    const res = await fetch(
+        "/api/admin/users",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type":
+                    "application/json",
+            },
+            body: JSON.stringify(
+                payload
+            ),
+        }
+    )
+
+    if (!res.ok) {
+        const data =
+            await res.json()
+
+        throw new Error(
+            data.error ||
+            "Create failed"
+        )
+    }
+
+    return res.json()
+}
+
+export async function getApprovedRedeemStats(
+    page = 1,
+    limit = 10
+) {
+    const res = await fetch(
+        `/api/admin/stats?page=${page}&limit=${limit}`
+    )
+
+    if (!res.ok) {
+        throw new Error(
+            "Load stats failed"
+        )
+    }
+
+    return res.json()
+}
