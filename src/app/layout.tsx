@@ -18,9 +18,10 @@ export default function RootLayout({
         />
 
         <UserProvider>
-            <div className="w-full max-w-md min-h-screen bg-white shadow-xl relative overflow-hidden">
+            <div
+                // className="w-full min-h-screen bg-white relative max-w-md lg:max-w-none">
+                className="w-full min-h-screen bg-white relative max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-5xl xl:max-w-7xl">
                 <div className="pb-24">{children}</div>
-
                 <BottomNav />
             </div>
         </UserProvider>

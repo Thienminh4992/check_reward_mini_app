@@ -87,8 +87,12 @@ export default function RedeemRequestTable() {
     }
 
     useEffect(() => {
-        loadData()
-    }, [status, page])
+        async function fetchData() {
+            await loadData()
+        }
+
+        fetchData()
+    }, [page])
 
     // =========================
     // APPROVE

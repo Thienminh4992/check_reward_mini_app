@@ -284,30 +284,6 @@ export const userRepository = {
     },
 
     // =========================
-    // USER POINTS
-    // =========================
-    // updateUserPoints(userId: string, delta: number,  client?: PoolClient) {
-    //     return execute(
-    //         `
-    //   UPDATE users
-    //   SET available_point = available_point + $1,
-    //       redeemed_point = CASE
-    //           WHEN $1 < 0 THEN redeemed_point + ABS($1)
-    //           ELSE redeemed_point
-    //       END,
-    //       earned_point = CASE
-    //           WHEN $1 > 0 THEN earned_point + $1
-    //           ELSE earned_point
-    //       END,
-    //       updated_at = CURRENT_TIMESTAMP
-    //   WHERE id = $2
-    //   `,
-    //         [delta, userId],
-    //         client
-    //     );
-    // },
-
-    // =========================
     // HISTORY
     // =========================
     insertPointHistory(data: {
@@ -589,6 +565,7 @@ export const userRepository = {
             phone_number?: string | null
             address?: string | null
             role?: string
+            telegram_id?: number | null
         },
         client?: PoolClient
     ) {
@@ -596,7 +573,7 @@ export const userRepository = {
             `
         UPDATE users
         SET
-            name = $2, email = $3, phone_number = $4, address = $5, role = $6, updated_at = NOW()
+            name = $2, email = $3, phone_number = $4, address = $5, role = $6, telegram_id= $7, updated_at = NOW()
         WHERE id = $1
         RETURNING ${USER_SAFE_SQL}
         `,
@@ -607,6 +584,7 @@ export const userRepository = {
                 payload.phone_number ?? null,
                 payload.address ?? null,
                 payload.role ?? "user",
+                payload.telegram_id,
             ],
             client
         )

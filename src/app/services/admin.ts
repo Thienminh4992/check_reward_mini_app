@@ -90,6 +90,7 @@ export async function updateUser(
         phone_number?: string
         address?: string
         role?: string
+        telegram_id: number
     }
 ) {
     const res = await fetch(

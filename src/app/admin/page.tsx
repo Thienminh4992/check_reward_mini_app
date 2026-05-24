@@ -60,10 +60,6 @@ export default function AdminPage() {
             {/* ── PHẦN 1: Tab navigation ── */}
             <div className="mx-4 mt-4">
                 <div className="bg-white rounded-2xl shadow-sm p-4">
-                    <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 px-1">
-                        Tác vụ
-                    </p>
-
                     <div className="grid grid-cols-4 gap-2">
                         {TABS.map((tab) => {
                             const isActive =

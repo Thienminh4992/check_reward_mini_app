@@ -16,7 +16,8 @@ export default function BottomNav() {
     }
 
     return (
-        <div className="fixed bottom-0 w-full max-w-md bg-white border-t flex justify-around py-2 shadow-md">
+        <div className="fixed bottom-0 left-1/2 -translate-x-1/2 z-50 w-full bg-white border-t flex
+        justify-around py-2 shadow-md max-w-md sm:max-w-lg md:max-w-2xl lg:max-w-5xl xl:max-w-7xl">
 
             {/* HOME */}
             <Link

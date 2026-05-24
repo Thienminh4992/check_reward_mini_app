@@ -1,5 +1,5 @@
 "use client"
-
+import * as XLSX from "xlsx"
 import { useEffect, useState } from "react"
 
 import { getApprovedRedeemStats } from "@/app/services/admin"
@@ -9,15 +9,11 @@ interface Item {
 
     uid: string
     name: string
-
     email: string
     phone_number: string
-
     reward_name: string
     required_points: number
-
     quantity: number
-
     created_at: string
 }
 
@@ -46,8 +42,89 @@ export default function ApprovedRedeemStatsTable() {
     }
 
     useEffect(() => {
-        loadData()
+        async function fetchData() {
+            await loadData()
+        }
+
+        fetchData()
     }, [page])
+
+    function exportExcel() {
+        const rows = items.map(
+            (item, index) => ({
+                STT: index + 1,
+
+                UID: item.uid,
+
+                "Người dùng": item.name,
+
+                Email: item.email,
+
+                "Số điện thoại":
+                    item.phone_number || "",
+
+                "Quà tặng":
+                item.reward_name,
+
+                "Số lượng":
+                item.quantity,
+
+                "Điểm tiêu":
+                    item.required_points *
+                    item.quantity,
+
+                "Ngày đổi": new Date(
+                    item.created_at
+                ).toLocaleString("vi-VN"),
+            })
+        )
+
+        const worksheet =
+            XLSX.utils.json_to_sheet(rows)
+
+        const workbook =
+            XLSX.utils.book_new()
+
+        XLSX.utils.book_append_sheet(
+            workbook,
+            worksheet,
+            "Redeem Stats"
+        )
+
+        const excelBuffer = XLSX.write(
+            workbook,
+            {
+                bookType: "xlsx",
+                type: "array",
+            }
+        )
+
+        const blob = new Blob(
+            [excelBuffer],
+            {
+                type:
+                    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            }
+        )
+
+        const url =
+            window.URL.createObjectURL(blob)
+
+        const a =
+            document.createElement("a")
+
+        a.href = url
+
+        a.download = `redeem-stats-page-${page}.xlsx`
+
+        document.body.appendChild(a)
+
+        a.click()
+
+        document.body.removeChild(a)
+
+        window.URL.revokeObjectURL(url)
+    }
 
     const totalPages = Math.max(
         1,
@@ -56,6 +133,15 @@ export default function ApprovedRedeemStatsTable() {
 
     return (
         <div className="space-y-2">
+            {/* ACTIONS */}
+            <div className="flex justify-end">
+                <button
+                    onClick={exportExcel}
+                    className=" h-10 px-4 rounded-xl bg-green-500 hover:bg-green-600 text-white text-[12px]
+                    font-medium shadow-sm transition">
+                    Xuất Excel
+                </button>
+            </div>
             {/* TABLE */}
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
                 <div className="overflow-x-auto">

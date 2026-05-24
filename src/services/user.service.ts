@@ -451,6 +451,7 @@ export const userService = {
             phone_number?: string
             address?: string
             role?: string
+            telegram_id?: number
         }
     ) {
         return userRepository.updateUserAdmin(userId, {
@@ -459,6 +460,7 @@ export const userService = {
             phone_number: payload.phone_number ?? null,
             address: payload.address ?? null,
             role: payload.role ?? "user",
+            telegram_id: payload.telegram_id,
         })
     },
 
