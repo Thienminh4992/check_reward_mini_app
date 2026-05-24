@@ -1,11 +1,10 @@
-// src/app/api/admin/redeem-requests/route.ts
-import { NextRequest, NextResponse } from "next/server";
-import { userService } from "@/services/user.service";
+import { NextRequest, NextResponse } from "next/server"
+import { userService } from "@/services/user.service"
 
 export async function GET(req: NextRequest) {
     try {
-        const status =
-            req.nextUrl.searchParams.get("status") || "all"
+        const uid =
+            req.nextUrl.searchParams.get("uid") || ""
 
         const page = Number(
             req.nextUrl.searchParams.get("page") || 1
@@ -15,8 +14,8 @@ export async function GET(req: NextRequest) {
             req.nextUrl.searchParams.get("limit") || 10
         )
 
-        const data = await userService.getRedeemRequests(
-            status,
+        const data = await userService.getUsers(
+            uid,
             page,
             limit
         )

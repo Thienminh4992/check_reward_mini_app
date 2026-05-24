@@ -286,26 +286,26 @@ export const userRepository = {
     // =========================
     // USER POINTS
     // =========================
-    updateUserPoints(userId: string, delta: number,  client?: PoolClient) {
-        return execute(
-            `
-      UPDATE users
-      SET available_point = available_point + $1,
-          redeemed_point = CASE
-              WHEN $1 < 0 THEN redeemed_point + ABS($1)
-              ELSE redeemed_point
-          END,
-          earned_point = CASE
-              WHEN $1 > 0 THEN earned_point + $1
-              ELSE earned_point
-          END,
-          updated_at = CURRENT_TIMESTAMP
-      WHERE id = $2
-      `,
-            [delta, userId],
-            client
-        );
-    },
+    // updateUserPoints(userId: string, delta: number,  client?: PoolClient) {
+    //     return execute(
+    //         `
+    //   UPDATE users
+    //   SET available_point = available_point + $1,
+    //       redeemed_point = CASE
+    //           WHEN $1 < 0 THEN redeemed_point + ABS($1)
+    //           ELSE redeemed_point
+    //       END,
+    //       earned_point = CASE
+    //           WHEN $1 > 0 THEN earned_point + $1
+    //           ELSE earned_point
+    //       END,
+    //       updated_at = CURRENT_TIMESTAMP
+    //   WHERE id = $2
+    //   `,
+    //         [delta, userId],
+    //         client
+    //     );
+    // },
 
     // =========================
     // HISTORY
@@ -336,28 +336,70 @@ export const userRepository = {
         );
     },
 
-    getRedeemRequests(status: string, client?: PoolClient) {
-        return query(
+    async getRedeemRequests(
+        params: {
+            status?: string
+            page?: number
+            limit?: number
+        },
+        client?: PoolClient
+    ) {
+        const {
+            status = "all",
+            page = 1,
+            limit = 10,
+        } = params
+
+        const offset = (page - 1) * limit
+
+        const values: unknown[] = []
+        let whereSql = ""
+
+        if (status !== "all") {
+            values.push(status)
+            whereSql = `WHERE rr.status = $${values.length}`
+        }
+
+        values.push(limit)
+        values.push(offset)
+
+        const limitIndex = values.length - 1
+        const offsetIndex = values.length
+
+        const items = await query(
             `
-      SELECT 
-          rr.*,
-          u.uid,
-          u.telegram_id,
-          u.name,
-          u.phone_number,
-          u.email,
-          u.address,
-          r.name as reward_name,
-          r.required_points
-      FROM redeem_requests rr
-      JOIN users u ON rr.user_id = u.id
-      JOIN rewards r ON rr.reward_id = r.id
-      WHERE rr.status = $1
-      ORDER BY rr.created_at DESC
-      `,
-            [status],
+        SELECT 
+            rr.*, u.uid, u.telegram_id, u.name, u.phone_number, u.email, u.address, r.name as reward_name, r.required_points
+        FROM redeem_requests rr
+        JOIN users u ON rr.user_id = u.id
+        JOIN rewards r ON rr.reward_id = r.id
+        ${whereSql}
+        ORDER BY rr.created_at DESC
+        LIMIT $${limitIndex}
+        OFFSET $${offsetIndex}
+        `,
+            values,
             client
-        );
+        )
+
+        // count
+        const countValues: unknown[] = []
+        let countWhere = ""
+
+        if (status !== "all") {
+            countValues.push(status)
+            countWhere = `WHERE status = $1`
+        }
+
+        const countResult = await queryOne(
+            `SELECT COUNT(*)::int as total FROM redeem_requests ${countWhere}`,countValues, client)
+
+        return {
+            items,
+            total: countResult?.total ?? 0,
+            page,
+            limit,
+        }
     },
 
     syncEarnedPoints(userId: string, earnedFromVolume: number, client: PoolClient) {
@@ -470,5 +512,110 @@ export const userRepository = {
             client
         );
     },
+    // =========================
+// ADMIN — USERS
+// =========================
+    async getUsers(
+        params: {
+            uid?: string
+            page?: number
+            limit?: number
+        },
+        client?: PoolClient
+    ) {
+        const {uid = "", page = 1, limit = 10,} = params
+
+        const offset = (page - 1) * limit
+
+        const values: unknown[] = []
+        let whereSql = ""
+
+        if (uid.trim()) {
+            values.push(`%${uid.trim()}%`)
+            whereSql = `WHERE uid ILIKE $${values.length}`
+        }
+
+        values.push(limit)
+        values.push(offset)
+
+        const limitIndex = values.length - 1
+        const offsetIndex = values.length
+
+        const items = await query<User>(
+            `
+        SELECT ${USER_SAFE_SQL}
+        FROM users
+        ${whereSql}
+        ORDER BY created_at DESC
+        LIMIT $${limitIndex}
+        OFFSET $${offsetIndex}
+        `,
+            values,
+            client
+        )
+
+        // count
+        const countValues: unknown[] = []
+        let countWhere = ""
+
+        if (uid.trim()) {
+            countValues.push(`%${uid.trim()}%`)
+            countWhere = `WHERE uid ILIKE $1`
+        }
+
+        const countResult = await queryOne<{ total: number }>(
+            `
+        SELECT COUNT(*)::int as total
+        FROM users
+        ${countWhere}
+        `,
+            countValues,
+            client
+        )
+
+        return {
+            items,
+            total: countResult?.total ?? 0,
+            page,
+            limit,
+        }
+    },
+
+    updateUserAdmin(
+        userId: string,
+        payload: {
+            name: string
+            email?: string | null
+            phone_number?: string | null
+            address?: string | null
+            role?: string
+        },
+        client?: PoolClient
+    ) {
+        return queryOne<User>(
+            `
+        UPDATE users
+        SET
+            name = $2, email = $3, phone_number = $4, address = $5, role = $6, updated_at = NOW()
+        WHERE id = $1
+        RETURNING ${USER_SAFE_SQL}
+        `,
+            [
+                userId,
+                payload.name,
+                payload.email ?? null,
+                payload.phone_number ?? null,
+                payload.address ?? null,
+                payload.role ?? "user",
+            ],
+            client
+        )
+    },
+
+    deleteUser(userId: string, client?: PoolClient) {
+        return execute( `DELETE FROM users WHERE id = $1`,  [userId],  client
+        )
+    },
+
 };
 

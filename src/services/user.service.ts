@@ -1,3 +1,4 @@
+//src/services/user.service.ts
 import { withTransaction } from "@/lib/db";
 import { famRecordHasVerifiableFields, verifyFamUserMatch } from "@/lib/fam-verify";
 import { hashPassword, verifyPassword } from "@/lib/password";
@@ -381,11 +382,12 @@ export const userService = {
     // =========================
     // ADMIN
     // =========================
-    async getRedeemRequests(status = "pending") {
-        const items =
-            await userRepository.getRedeemRequests(status);
-
-        return items ?? [];
+    async getRedeemRequests(status = "all", page = 1, limit = 10) {
+        return userRepository.getRedeemRequests({
+            status,
+            page,
+            limit,
+        })
     },
 
 
@@ -424,5 +426,43 @@ export const userService = {
 
     deleteReward(rewardId: string) {
         return userRepository.deleteReward(rewardId);
+    },
+
+    // =========================
+// ADMIN USERS
+// =========================
+    async getUsers(
+        uid = "",
+        page = 1,
+        limit = 10
+    ) {
+        return userRepository.getUsers({
+            uid,
+            page,
+            limit,
+        })
+    },
+
+    async updateUserAdmin(
+        userId: string,
+        payload: {
+            name: string
+            email?: string
+            phone_number?: string
+            address?: string
+            role?: string
+        }
+    ) {
+        return userRepository.updateUserAdmin(userId, {
+            name: payload.name,
+            email: payload.email ?? null,
+            phone_number: payload.phone_number ?? null,
+            address: payload.address ?? null,
+            role: payload.role ?? "user",
+        })
+    },
+
+    async deleteUser(userId: string) {
+        return userRepository.deleteUser(userId)
     },
 };

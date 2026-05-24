@@ -1,7 +1,4 @@
-/**
- * Stub — màn admin tạm không dùng; giữ type để component biên dịch được.
- */
-
+// src/app/services/admin.ts
 export interface RedeemRequest {
     id: string;
     uid: string;
@@ -13,22 +10,26 @@ export interface RedeemRequest {
     quantity: number;
     reward_name: string;
     status: string;
+    page: number,
+    limit: number,
     // shipping_info?: { phone: string; address: string };
     // proof_image?: string[];
 }
 
 export async function getRedeemRequests(
-    status: string
-): Promise<RedeemRequest[]> {
+    status = "all",
+    page = 1,
+    limit = 10
+) {
     const res = await fetch(
-        `/api/admin/redeem-requests?status=${status}`
-    );
+        `/api/admin/redeem-requests?status=${status}&page=${page}&limit=${limit}`
+    )
 
     if (!res.ok) {
-        throw new Error("Fetch failed");
+        throw new Error("Load failed")
     }
 
-    return res.json();
+    return res.json()
 }
 
 export async function approveRedeemRequest(
@@ -63,5 +64,62 @@ export async function rejectRedeemRequest(
 
     if (!res.ok) {
         throw new Error("Reject failed");
+    }
+}
+export async function getUsers(
+    uid = "",
+    page = 1,
+    limit = 10
+) {
+    const res = await fetch(
+        `/api/admin/users?uid=${uid}&page=${page}&limit=${limit}`
+    )
+
+    if (!res.ok) {
+        throw new Error("Load users failed")
+    }
+
+    return res.json()
+}
+
+export async function updateUser(
+    id: string,
+    payload: {
+        name: string
+        email?: string
+        phone_number?: string
+        address?: string
+        role?: string
+    }
+) {
+    const res = await fetch(
+        `/api/admin/users/${id}`,
+        {
+            method: "PUT",
+            headers: {
+                "Content-Type":
+                    "application/json",
+            },
+            body: JSON.stringify(payload),
+        }
+    )
+
+    if (!res.ok) {
+        throw new Error("Update failed")
+    }
+
+    return res.json()
+}
+
+export async function deleteUser(id: string) {
+    const res = await fetch(
+        `/api/admin/users/${id}`,
+        {
+            method: "DELETE",
+        }
+    )
+
+    if (!res.ok) {
+        throw new Error("Delete failed")
     }
 }
