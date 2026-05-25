@@ -50,60 +50,14 @@ export default function ApprovedRedeemStatsTable() {
     }, [page])
 
     function exportExcel() {
-        const rows = items.map(
-            (item, index) => ({
-                STT: index + 1,
+        const url = `${window.location.origin}/api/admin/export-stats?page=${page}&limit=${limit}`
 
-                UID: item.uid,
-
-                "Người dùng": item.name,
-
-                Email: item.email,
-
-                "Số điện thoại":
-                    item.phone_number || "",
-
-                "Quà tặng":
-                item.reward_name,
-
-                "Số lượng":
-                item.quantity,
-
-                "Điểm tiêu":
-                    item.required_points *
-                    item.quantity,
-
-                "Ngày đổi": new Date(
-                    item.created_at
-                ).toLocaleString("vi-VN"),
-            })
-        )
-
-        const worksheet =
-            XLSX.utils.json_to_sheet(rows)
-
-        const workbook =
-            XLSX.utils.book_new()
-
-        XLSX.utils.book_append_sheet(
-            workbook,
-            worksheet,
-            "Redeem Stats"
-        )
-
-        const base64 = XLSX.write(workbook, { bookType: "xlsx", type: "base64" })
-
-        const a = document.createElement("a")
-
-        a.href = `data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,${base64}`
-
-        a.download = `redeem-stats-page-${page}.xlsx`
-
-        document.body.appendChild(a)
-
-        a.click()
-
-        document.body.removeChild(a)
+        // Telegram Mini App dùng cách này để mở link
+        if (window.Telegram?.WebApp) {
+            window.Telegram.WebApp.openLink(url)
+        } else {
+            window.open(url, "_blank")
+        }
     }
 
     const totalPages = Math.max(

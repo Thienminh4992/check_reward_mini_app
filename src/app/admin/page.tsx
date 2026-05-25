@@ -16,9 +16,9 @@ interface Tab {
 
 const TABS: Tab[] = [
     { id: "redeem", label: "Duyệt quà", icon: "🎁" },
-    { id: "users", label: "Người dùng", icon: "👤" },
-    { id: "stats", label: "Thống kê", icon: "📊" },
-    { id: "import", label: "Import CSV", icon: "📥" },
+    { id: "users", label: "Quản lý User", icon: "👤" },
+    { id: "stats", label: "Danh sách đổi quà", icon: "📊" },
+    { id: "import", label: "Import Volume CSV", icon: "📥" },
 ]
 
 // ─── Placeholder content ─────────────────────────────────────────────────────

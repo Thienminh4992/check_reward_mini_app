@@ -92,7 +92,7 @@ export default function RedeemRequestTable() {
         }
 
         fetchData()
-    }, [page])
+    }, [page, status])
 
     // =========================
     // APPROVE
