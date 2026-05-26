@@ -1,5 +1,4 @@
 "use client"
-import * as XLSX from "xlsx"
 import { useEffect, useState } from "react"
 
 import { getApprovedRedeemStats } from "@/app/services/admin"

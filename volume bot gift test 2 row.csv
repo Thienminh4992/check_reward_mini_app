@@ -1,0 +1,3 @@
+order_no;UID;sub_UID;finish_time;type;quotation;coin_name;level_times;margin;direction;deal_price;delegate_price;deal_amount;Volume
+2,01292E+18;31732711;;25/05/2026 23:55;SWAP_U;BERAUSDT;USDT;5;198.146.098;Close_Long;0.8759000000000001;0.8759;9.907.304.900.000.000;5.000
+2,01292E+18;31732715;;26/05/2026 23:55;SWAP_U;BERAUSDT;USDT;5;20.512.412;Close_Long;0.8713113584232436;0.8714;10.256.206;2.000

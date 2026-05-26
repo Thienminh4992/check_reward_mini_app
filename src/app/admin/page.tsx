@@ -5,6 +5,7 @@ import Header from "@/components/Header"
 import RedeemRequestTable from "@/components/RedeemRequestTable"
 import UserManagementTable from "@/components/UserManagementTable"
 import ApprovedRedeemStatsTable from "@/components/ApprovedRedeemStatsTable"
+import ImportVolumeTab from "@/components/ImportVolumeTab";
 // ─── Tab types ────────────────────────────────────────────────────────────────
 type TabId = "redeem" | "users" | "stats" | "import"
 
@@ -113,10 +114,7 @@ export default function AdminPage() {
 
                 {activeTab === "import" && (
                     <div className="bg-white rounded-2xl shadow-sm p-4">
-                        <PlaceholderTab
-                            label="Import CSV"
-                            icon="📥"
-                        />
+                        <ImportVolumeTab />
                     </div>
                 )}
             </div>
