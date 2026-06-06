@@ -48,17 +48,6 @@ export default function RewardList({
         )
     }, [rewards])
 
-    const [page, setPage] = useState(0)
-    const itemsPerPage = 3
-    const totalPages = Math.ceil(sortedRewards.length / itemsPerPage)
-
-    const visibleRewards = useMemo(() => {
-        return sortedRewards.slice(
-            page * itemsPerPage,
-            page * itemsPerPage + itemsPerPage
-        )
-    }, [sortedRewards, page])
-
     // =========================
     // Admin modal state
     // =========================
@@ -251,7 +240,7 @@ export default function RewardList({
 
             {/* Danh sách */}
             <div className="space-y-3 mt-3">
-                {visibleRewards.map((reward) => (
+                {sortedRewards.map((reward) => (
                     <RewardItem
                         key={reward.id}
                         reward={reward}
@@ -263,37 +252,6 @@ export default function RewardList({
                         onDelete={handleDelete}
                     />
                 ))}
-            </div>
-
-            {/* Phân trang */}
-            <div className="flex items-center justify-center gap-3 mt-4">
-                <button
-                    onClick={() => setPage(prev => Math.max(prev - 1, 0))}
-                    disabled={page === 0}
-                    className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
-                        page === 0
-                            ? "bg-gray-200 text-gray-400"
-                            : "bg-blue-500 text-white hover:bg-blue-600"
-                    }`}
-                >
-                    <ChevronLeft size={18} />
-                </button>
-
-                <span className="text-sm font-medium text-gray-500">
-                    {page + 1}/{totalPages}
-                </span>
-
-                <button
-                    onClick={() => setPage(prev => Math.min(prev + 1, totalPages - 1))}
-                    disabled={page === totalPages - 1}
-                    className={`w-9 h-9 rounded-full flex items-center justify-center transition ${
-                        page === totalPages - 1
-                            ? "bg-gray-200 text-gray-400"
-                            : "bg-blue-500 text-white hover:bg-blue-600"
-                    }`}
-                >
-                    <ChevronRight size={18} />
-                </button>
             </div>
 
             {/* Modal thêm/sửa — chỉ admin */}

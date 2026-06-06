@@ -19,7 +19,7 @@ export async function GET(req: NextRequest) {
     const page = Number(searchParams.get("page") || 1)
     const limit = Number(searchParams.get("limit") || 10)
 
-    const internalUrl = new URL(`/api/admin/stats`, req.url)
+    const internalUrl = new URL(`/api/admin/stats`, "http://localhost:3000")
     internalUrl.searchParams.set("page", String(page))
     internalUrl.searchParams.set("limit", String(limit))
 

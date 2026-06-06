@@ -1,0 +1,49 @@
+INSERT INTO public.fam_users (id, email, uid, telegram_account, discord_account, created_at)
+VALUES (gen_random_uuid(), 'user01@example.com', '10000001', '@telegram_user01', 'discord_user01', NOW());
+
+INSERT INTO public.fam_users (id, email, uid, telegram_account, discord_account, created_at)
+VALUES (gen_random_uuid(), 'user02@example.com', '10000002', '@telegram_user02', 'discord_user02', NOW());
+
+INSERT INTO public.fam_users (id, email, uid, telegram_account, discord_account, created_at)
+VALUES (gen_random_uuid(), 'user03@example.com', '10000003', '@telegram_user03', 'discord_user03', NOW());
+
+INSERT INTO public.fam_users (id, email, uid, telegram_account, discord_account, created_at)
+VALUES (gen_random_uuid(), 'user04@example.com', '10000004', '@telegram_user04', 'discord_user04', NOW());
+
+INSERT INTO public.fam_users (id, email, uid, telegram_account, discord_account, created_at)
+VALUES (gen_random_uuid(), 'user05@example.com', '10000005', '@telegram_user05', 'discord_user05', NOW());
+
+INSERT INTO public.fam_users (id, email, uid, telegram_account, discord_account, created_at)
+VALUES (gen_random_uuid(), 'user06@example.com', '10000006', '@telegram_user06', 'discord_user06', NOW());
+
+INSERT INTO public.fam_users (id, email, uid, telegram_account, discord_account, created_at)
+VALUES (gen_random_uuid(), 'user07@example.com', '10000007', '@telegram_user07', 'discord_user07', NOW());
+
+INSERT INTO public.fam_users (id, email, uid, telegram_account, discord_account, created_at)
+VALUES (gen_random_uuid(), 'user08@example.com', '10000008', '@telegram_user08', 'discord_user08', NOW());
+
+INSERT INTO public.fam_users (id, email, uid, telegram_account, discord_account, created_at)
+VALUES (gen_random_uuid(), 'user09@example.com', '10000009', '@telegram_user09', 'discord_user09', NOW());
+
+INSERT INTO public.fam_users (id, email, uid, telegram_account, discord_account, created_at)
+VALUES (gen_random_uuid(), 'user10@example.com', '10000010', '@telegram_user10', 'discord_user10', NOW());
+
+INSERT INTO public.user_volume_agg (id, uid, total_volume_usd, total_orders, last_updated) VALUES (gen_random_uuid(), '10000001', 12500.50, 120, NOW());
+
+INSERT INTO public.user_volume_agg (id, uid, total_volume_usd, total_orders, last_updated) VALUES (gen_random_uuid(), '10000002', 23000.75, 180, NOW());
+
+INSERT INTO public.user_volume_agg (id, uid, total_volume_usd, total_orders, last_updated) VALUES (gen_random_uuid(), '10000003', 10850.25, 70, NOW());
+
+INSERT INTO public.user_volume_agg (id, uid, total_volume_usd, total_orders, last_updated) VALUES (gen_random_uuid(), '10000004', 51000.00, 350, NOW());
+
+INSERT INTO public.user_volume_agg (id, uid, total_volume_usd, total_orders, last_updated) VALUES (gen_random_uuid(), '10000005', 32000.40, 220, NOW());
+
+INSERT INTO public.user_volume_agg (id, uid, total_volume_usd, total_orders, last_updated) VALUES (gen_random_uuid(), '10000006', 15640.80, 150, NOW());
+
+INSERT INTO public.user_volume_agg (id, uid, total_volume_usd, total_orders, last_updated) VALUES (gen_random_uuid(), '10000007', 78500.30, 480, NOW());
+
+INSERT INTO public.user_volume_agg (id, uid, total_volume_usd, total_orders, last_updated) VALUES (gen_random_uuid(), '10000008', 21900.00, 150, NOW());
+
+INSERT INTO public.user_volume_agg (id, uid, total_volume_usd, total_orders, last_updated) VALUES (gen_random_uuid(), '10000009', 41200.60, 290, NOW());
+
+INSERT INTO public.user_volume_agg (id, uid, total_volume_usd, total_orders, last_updated) VALUES (gen_random_uuid(), '10000010', 10980.10, 90, NOW());
