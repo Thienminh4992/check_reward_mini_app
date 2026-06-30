@@ -30,7 +30,7 @@ export async function POST(req: NextRequest) {
         }
 
         const result = await volumeService.importTransactions(rows, fromDate, toDate)
-        console.log('RESULT IMPORT-VOLUME: ', result)
+        // console.log('RESULT IMPORT-VOLUME: ', result)
         return NextResponse.json(result)
     } catch (e) {
         console.error("[import-volume]", e)

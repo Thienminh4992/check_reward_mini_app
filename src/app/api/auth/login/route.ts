@@ -86,7 +86,7 @@ export async function POST(req: NextRequest) {
             userId: result.user.id,
             telegramId: telegramUser.id,
         });
-        console.log("TOKEN:", token);
+        // console.log("TOKEN:", token);
 
         const response = NextResponse.json({
             success: true,

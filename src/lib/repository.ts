@@ -12,7 +12,7 @@ import {
 const USER_SAFE_SQL = `
   id, telegram_id, telegram_name, uid, name, role,
   earned_point, redeemed_point, available_point,
-  email, phone_number, address,
+  email, phone_number, address, avatar_url,
   created_at, updated_at
 `;
 
@@ -157,6 +157,7 @@ export const userRepository = {
             email: string | null;
             phone_number: string | null;
             address: string | null;
+            uid: string | null;
         },
         client?: PoolClient
     ) {
@@ -168,6 +169,7 @@ export const userRepository = {
             email = $3,
             phone_number = $4,
             address = $5,
+            uid = $6,
             updated_at = NOW()
         WHERE id = $1
         RETURNING ${USER_SAFE_SQL}
@@ -178,6 +180,56 @@ export const userRepository = {
                 payload.email,
                 payload.phone_number,
                 payload.address,
+                payload.uid,
+            ],
+            client
+        );
+    },
+    // =========================
+    // GET USER PASS - CHANGE PASS WORD
+    // =========================
+    getUserWithPasswordById(
+        userId: string,
+        client?: PoolClient
+    ) {
+        return queryOne(
+            `
+    SELECT ${USER_SAFE_SQL}, password_hash FROM users WHERE id = $1`,
+            [userId],
+            client
+        );
+    },
+
+    updatePassword(
+        userId: string,
+        passwordHash: string,
+        client?: PoolClient
+    ) {
+        return execute(
+            `
+    UPDATE users SET password_hash = $2, updated_at = NOW() WHERE id = $1`,
+            [userId, passwordHash],
+            client
+        );
+    },
+
+    updateAvatar(
+        userId: string,
+        avatarUrl: string,
+        client?: PoolClient
+    ) {
+        return queryOne<User>(
+            `
+        UPDATE users
+        SET
+            avatar_url = $2,
+            updated_at = NOW()
+        WHERE id = $1
+        RETURNING ${USER_SAFE_SQL}
+        `,
+            [
+                userId,
+                avatarUrl,
             ],
             client
         );

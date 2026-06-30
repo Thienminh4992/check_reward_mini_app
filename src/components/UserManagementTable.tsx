@@ -412,150 +412,102 @@ export default function UserManagementTable() {
             {showCreate && (
                 <div
                     className="
-                        fixed inset-0 z-50
-                        bg-black/40
-                        flex items-center justify-center
-                        p-4
-                    "
-                    onClick={() =>
-                        setShowCreate(false)
-                    }
+            fixed inset-0 z-50
+            bg-black/40
+            flex items-center justify-center
+            p-4
+        "
+                    onClick={() => setShowCreate(false)}
                 >
                     <div
                         className="
-                            bg-white
-                            rounded-3xl
-                            p-5
-                            w-full
-                            max-w-md
-                            max-h-[90vh]
-                            overflow-y-auto
-                        "
-                        onClick={(e) =>
-                            e.stopPropagation()
-                        }
+                bg-white
+                rounded-3xl
+                p-5
+                w-full
+                max-w-md
+                max-h-[90vh]
+                overflow-y-auto
+            "
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <h2 className="text-lg font-bold mb-5 text-blue-500 text-center">
                             THÊM USER
                         </h2>
 
                         <div className="space-y-4">
-                            <input
-                                placeholder="UID"
-                                value={newUser.uid}
-                                onChange={(e) =>
-                                    setNewUser({
-                                        ...newUser,
-                                        uid: e.target.value,
-                                    })
-                                }
-                                className="
-                                    w-full h-11
-                                    border
-                                    rounded-xl
-                                    px-4
-                                    text-sm
-                                "
-                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                    UID
+                                </label>
+                                <input
+                                    placeholder="UID"
+                                    value={newUser.uid}
+                                    onChange={(e) =>
+                                        setNewUser({ ...newUser, uid: e.target.value })
+                                    }
+                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                />
+                            </div>
 
-                            <input
-                                placeholder="Tên"
-                                value={newUser.name}
-                                onChange={(e) =>
-                                    setNewUser({
-                                        ...newUser,
-                                        name: e.target.value,
-                                    })
-                                }
-                                className="
-                                    w-full h-11
-                                    border
-                                    rounded-xl
-                                    px-4
-                                    text-sm
-                                "
-                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                    Tên
+                                </label>
+                                <input
+                                    placeholder="Tên"
+                                    value={newUser.name}
+                                    onChange={(e) =>
+                                        setNewUser({ ...newUser, name: e.target.value })
+                                    }
+                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                />
+                            </div>
 
-                            <input
-                                placeholder="Telegram ID"
-                                value={
-                                    newUser.telegram_id
-                                }
-                                onChange={(e) =>
-                                    setNewUser({
-                                        ...newUser,
-                                        telegram_id:
-                                        e.target
-                                            .value,
-                                    })
-                                }
-                                className="
-                                    w-full h-11
-                                    border
-                                    rounded-xl
-                                    px-4
-                                    text-sm
-                                "
-                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                    Telegram ID
+                                </label>
+                                <input
+                                    placeholder="Telegram ID"
+                                    value={newUser.telegram_id}
+                                    onChange={(e) =>
+                                        setNewUser({ ...newUser, telegram_id: e.target.value })
+                                    }
+                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                />
+                            </div>
 
-                            <input
-                                type="password"
-                                placeholder="Password"
-                                value={
-                                    newUser.password
-                                }
-                                onChange={(e) =>
-                                    setNewUser({
-                                        ...newUser,
-                                        password:
-                                        e.target
-                                            .value,
-                                    })
-                                }
-                                className="
-                                    w-full h-11
-                                    border
-                                    rounded-xl
-                                    px-4
-                                    text-sm
-                                "
-                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                    Password
+                                </label>
+                                <input
+                                    type="password"
+                                    placeholder="Password"
+                                    value={newUser.password}
+                                    onChange={(e) =>
+                                        setNewUser({ ...newUser, password: e.target.value })
+                                    }
+                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                />
+                            </div>
                         </div>
 
                         <div className="flex justify-end gap-2 mt-5">
                             <button
-                                onClick={() =>
-                                    setShowCreate(
-                                        false
-                                    )
-                                }
-                                className="
-                                    px-4 py-2
-                                    rounded-xl
-                                    bg-gray-100
-                                    text-sm
-                                "
+                                onClick={() => setShowCreate(false)}
+                                className="px-4 py-2 rounded-xl bg-gray-100 text-sm"
                             >
                                 Hủy
                             </button>
 
                             <button
                                 disabled={loading}
-                                onClick={
-                                    handleCreateUser
-                                }
-                                className="
-                                    px-4 py-2
-                                    rounded-xl
-                                    bg-blue-500
-                                    text-white
-                                    text-sm
-                                    disabled:opacity-50
-                                "
+                                onClick={handleCreateUser}
+                                className="px-4 py-2 rounded-xl bg-blue-500 text-white text-sm disabled:opacity-50"
                             >
-                                {loading
-                                    ? "Đang tạo..."
-                                    : "Tạo user"}
+                                {loading ? "Đang tạo..." : "Tạo user"}
                             </button>
                         </div>
                     </div>
@@ -578,144 +530,97 @@ export default function UserManagementTable() {
                 >
                     <div
                         className="
-                            bg-white
-                            rounded-3xl
-                            p-5
-                            w-full
-                            max-w-md
-                            max-h-[90vh]
-                            overflow-y-auto
-                        "
-                        onClick={(e) =>
-                            e.stopPropagation()
-                        }
+                bg-white
+                rounded-3xl
+                p-5
+                w-full
+                max-w-md
+                max-h-[90vh]
+                overflow-y-auto
+            "
+                        onClick={(e) => e.stopPropagation()}
                     >
                         <h2 className="text-lg font-bold mb-5 text-center text-blue-500">
                             CHỈNH SỬA USER
                         </h2>
 
                         <div className="space-y-4">
-                            <input
-                                placeholder="UID"
-                                value={editUser.uid}
-                                onChange={(e) =>
-                                    setEditUser({
-                                        ...editUser,
-                                        uid: e.target.value,
-                                    })
-                                }
-                                className="
-                                    w-full h-11
-                                    border
-                                    rounded-xl
-                                    px-4
-                                    text-sm
-                                "
-                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                    UID
+                                </label>
+                                <input
+                                    placeholder="UID"
+                                    value={editUser.uid}
+                                    onChange={(e) =>
+                                        setEditUser({ ...editUser, uid: e.target.value })
+                                    }
+                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                />
+                            </div>
 
-                            <input
-                                placeholder="Tên"
-                                value={editUser.name}
-                                onChange={(e) =>
-                                    setEditUser({
-                                        ...editUser,
-                                        name: e.target.value,
-                                    })
-                                }
-                                className="
-                                    w-full h-11
-                                    border
-                                    rounded-xl
-                                    px-4
-                                    text-sm
-                                "
-                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                    Tên
+                                </label>
+                                <input
+                                    placeholder="Tên"
+                                    value={editUser.name}
+                                    onChange={(e) =>
+                                        setEditUser({ ...editUser, name: e.target.value })
+                                    }
+                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                />
+                            </div>
 
-                            <input
-                                placeholder="Telegram ID"
-                                value={
-                                    editUser.telegram_id
-                                }
-                                onChange={(e) =>
-                                    setEditUser({
-                                        ...editUser,
-                                        telegram_id:
-                                        e.target
-                                            .value,
-                                    })
-                                }
-                                className="
-                                    w-full h-11
-                                    border
-                                    rounded-xl
-                                    px-4
-                                    text-sm
-                                "
-                            />
+                            <div>
+                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                    Telegram ID
+                                </label>
+                                <input
+                                    placeholder="Telegram ID"
+                                    value={editUser.telegram_id}
+                                    onChange={(e) =>
+                                        setEditUser({ ...editUser, telegram_id: e.target.value })
+                                    }
+                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                />
+                            </div>
 
-                            <select
-                                value={editUser.role}
-                                onChange={(e) =>
-                                    setEditUser({
-                                        ...editUser,
-                                        role: e.target.value,
-                                    })
-                                }
-                                className="
-                                    w-full h-11
-                                    border
-                                    rounded-xl
-                                    px-4
-                                    text-sm
-                                "
-                            >
-                                <option value="user">
-                                    user
-                                </option>
-
-                                <option value="admin">
-                                    admin
-                                </option>
-                            </select>
+                            <div>
+                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                    Quyền
+                                </label>
+                                <select
+                                    value={editUser.role}
+                                    onChange={(e) =>
+                                        setEditUser({ ...editUser, role: e.target.value })
+                                    }
+                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                >
+                                    <option value="user">user</option>
+                                    <option value="admin">admin</option>
+                                </select>
+                            </div>
                         </div>
 
                         <div className="flex justify-end gap-2 mt-5">
                             <button
                                 onClick={() => {
-                                    setShowEdit(
-                                        false
-                                    )
-                                    setEditUser(
-                                        null
-                                    )
+                                    setShowEdit(false)
+                                    setEditUser(null)
                                 }}
-                                className="
-                                    px-4 py-2
-                                    rounded-xl
-                                    bg-gray-100
-                                    text-sm
-                                "
+                                className="px-4 py-2 rounded-xl bg-gray-100 text-sm"
                             >
                                 Hủy
                             </button>
 
                             <button
                                 disabled={loading}
-                                onClick={
-                                    handleUpdateUser
-                                }
-                                className="
-                                    px-4 py-2
-                                    rounded-xl
-                                    bg-blue-500
-                                    text-white
-                                    text-sm
-                                    disabled:opacity-50
-                                "
+                                onClick={handleUpdateUser}
+                                className="px-4 py-2 rounded-xl bg-blue-500 text-white text-sm disabled:opacity-50"
                             >
-                                {loading
-                                    ? "Đang lưu..."
-                                    : "Lưu"}
+                                {loading ? "Đang lưu..." : "Lưu"}
                             </button>
                         </div>
                     </div>

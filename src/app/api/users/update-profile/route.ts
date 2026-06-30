@@ -27,6 +27,7 @@ export async function PUT(req: NextRequest) {
                     email: body.email,
                     address: body.address,
                     phone_number: body.phone,
+                    uid: body.uid,
                 }
             );
 

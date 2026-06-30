@@ -7,7 +7,7 @@ const nextConfig = {
         },
     },
 
-    // Disable caching cho pages quan trọng
+    // Disable caching cho pages
     async headers() {
         const noStore = [
             {
@@ -31,13 +31,13 @@ const nextConfig = {
         }));
     },
 
-    // Quan trọng khi deploy Docker/Nginx
+    // Important khi deploy Docker/Nginx
     output: "standalone",
 
-    // tránh lỗi asset path khi chạy domain
+    // Tranh loi asset path khi chay domain
     assetPrefix: undefined,
 
-    // giúp ổn định build giữa các container
+    // Giup on dinh build giua cac container
     generateEtags: false,
 };
 

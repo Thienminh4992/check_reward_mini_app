@@ -1,0 +1,72 @@
+[
+  {
+    "id": 1001,
+    "email": "user01@example.com",
+    "uid": "10000001",
+    "telegram_account": "@telegram_user01",
+    "discord_account": "discord_user01"
+  },
+  {
+    "id": 1002,
+    "email": "user02@example.com",
+    "uid": "10000002",
+    "telegram_account": "@telegram_user02",
+    "discord_account": "discord_user02"
+  },
+  {
+    "id": 1003,
+    "email": "user03@example.com",
+    "uid": "10000003",
+    "telegram_account": "@telegram_user03",
+    "discord_account": "discord_user03"
+  },
+  {
+    "id": 1004,
+    "email": "user04@example.com",
+    "uid": "10000004",
+    "telegram_account": "@telegram_user04",
+    "discord_account": "discord_user04"
+  },
+  {
+    "id": 1005,
+    "email": "user05@example.com",
+    "uid": "10000005",
+    "telegram_account": "@telegram_user05",
+    "discord_account": "discord_user05"
+  },
+  {
+    "id": 1006,
+    "email": "user06@example.com",
+    "uid": "10000006",
+    "telegram_account": "@telegram_user06",
+    "discord_account": "discord_user06"
+  },
+  {
+    "id": 1007,
+    "email": "user07@example.com",
+    "uid": "10000007",
+    "telegram_account": "@telegram_user07",
+    "discord_account": "discord_user07"
+  },
+  {
+    "id": 1008,
+    "email": "user08@example.com",
+    "uid": "10000008",
+    "telegram_account": "@telegram_user08",
+    "discord_account": "discord_user08"
+  },
+  {
+    "id": 1009,
+    "email": "user09@example.com",
+    "uid": "10000009",
+    "telegram_account": "@telegram_user09",
+    "discord_account": "discord_user09"
+  },
+  {
+    "id": 1010,
+    "email": "user10@example.com",
+    "uid": "10000010",
+    "telegram_account": "@telegram_user10",
+    "discord_account": "discord_user10"
+  }
+]

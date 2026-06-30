@@ -90,6 +90,7 @@ export default function HomePage() {
                 available_point: data.user.available_point,
                 earned_point: data.user.earned_point,
                 redeemed_point: data.user.redeemed_point,
+                avatar_url: data.user.avatar_url,
             };
         });
 
@@ -151,7 +152,7 @@ export default function HomePage() {
                 ?.map((item) => item.reward_id)
         );
     }, [dashboard]);
-    console.log("REDEEMEDREWARDIDS", redeemedRewardIds)
+    // console.log("REDEEMEDREWARDIDS", redeemedRewardIds)
     if (!dashboard || !user) {
         return (
             <div className="h-screen flex flex-col bg-gray-100">

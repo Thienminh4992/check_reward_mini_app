@@ -112,12 +112,14 @@ export const userService = {
             email?: string;
             address?: string;
             phone_number?: string;
+            uid?: string;
         }
     ): Promise<UpdateProfileResult> {
         const name = payload.name?.trim() || "";
         const email = payload.email?.trim() || "";
         const phone = payload.phone_number?.trim() || "";
         const address = payload.address?.trim() || "";
+        const uid = payload.uid?.trim() || "";
 
         if (name.length < 2) {
             return { status: "invalid_name" };
@@ -136,6 +138,7 @@ export const userService = {
             email: email || null,
             phone_number: phone || null,
             address: address || null,
+            uid: uid || null,
         });
 
         return {
@@ -143,13 +146,69 @@ export const userService = {
             user: user!,
         };
     },
+
     // =========================
+    // CHANGE PASSWORD
+    // =========================
+    // =========================
+
+    async changePassword(
+        userId: string,
+        currentPassword: string,
+        newPassword: string
+    ) {
+        const user =
+            await userRepository.getUserWithPasswordById(
+                userId
+            );
+
+        if (!user) {
+            throw new Error("USER_NOT_FOUND");
+        }
+
+        const valid =
+            await verifyPassword(
+                currentPassword,
+                user.password_hash
+            );
+
+        if (!valid) {
+            throw new Error("WRONG_PASSWORD");
+        }
+
+        const password_hash =
+            await hashPassword(newPassword);
+
+        await userRepository.updatePassword(
+            userId,
+            password_hash
+        );
+
+        return { success: true };
+    },
+
+    async updateAvatar(
+        userId: string,
+        avatarUrl: string
+    ) {
+        const user =
+            await userRepository.updateAvatar(
+                userId,
+                avatarUrl
+            );
+
+        return {
+            success: true,
+            user,
+        };
+    },
+
     // USER DASHBOARD
     // =========================
     async getDashboard(userId: string) {
         return withTransaction(async (client) => {
             const user = await userRepository.getUserById(userId, client);
-
+            console.log("avatar", user?.avatar_url);
             if (!user) throw new Error("User not found");
 
             const [history, volumeData] = await Promise.all([

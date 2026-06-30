@@ -11,6 +11,7 @@ export interface User {
     available_point: number;
     earned_point: number;
     redeemed_point: number;
+    avatar_url?: string | null;
 }
 
 export interface RewardHistoryItem {

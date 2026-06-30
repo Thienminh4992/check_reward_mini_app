@@ -15,6 +15,7 @@ export interface User {
     discord_account?: string | null;
     created_at: string;
     updated_at: string;
+    avatar_url?: string | null;
 }
 
 export interface FamUser {
