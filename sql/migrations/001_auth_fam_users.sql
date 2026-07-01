@@ -1,3 +1,13 @@
+-- ============================================================================
+-- Migration: 001_auth_fam_users.sql (DEPRECATED — đã tách thành 002 và 003)
+-- Description: CŨ — Tạo bảng fam_users + thêm cột auth vào users
+-- Notes: Migration cũ, đã được tách thành:
+--        - 002_add_auth_columns.sql (thêm cột auth)
+--        - 003_create_fam_users_table.sql (tạo bảng FAM)
+-- Created: unknown
+-- Deprecated: 2026-07-01
+-- ============================================================================
+
 -- Chạy thủ công trên PostgreSQL trước khi deploy phiên bản có đăng nhập UID/mật khẩu.
 
 CREATE TABLE IF NOT EXISTS fam_users (
