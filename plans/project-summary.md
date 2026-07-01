@@ -79,6 +79,7 @@ check_reward_mini_app/
 │   ├── lib/                          # Core utilities
 │   │   ├── db.ts                     # PG connection pool, query/execute/withTransaction
 │   │   ├── auth.ts                   # JWT sign/verify, getCurrentUser
+│   │   ├── admin-middleware.ts       # Admin role check (requireAdmin, adminResponse)
 │   │   ├── telegram.ts               # Verify Telegram initData
 │   │   ├── fam-verify.ts             # FAM (BingX) account verification
 │   │   ├── password.ts               # Hash/verify password

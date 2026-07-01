@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server"
 import { userService } from "@/services/user.service"
+import { requireAdmin, adminResponse } from "@/lib/admin-middleware"
 
 interface Params {
     params: Promise<{
@@ -11,6 +12,7 @@ export async function PUT(
     req: NextRequest,
     { params }: Params
 ) {
+    try { await requireAdmin(req); } catch { return adminResponse("Unauthorized", 401); }
     try {
         const { id } = await params
 
@@ -37,6 +39,7 @@ export async function DELETE(
     _: NextRequest,
     { params }: Params
 ) {
+    try { await requireAdmin(_); } catch { return adminResponse("Unauthorized", 401); }
     try {
         const { id } = await params
 

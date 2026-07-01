@@ -63,24 +63,18 @@ export default function RedeemRequestTable() {
     const [selectedUser, setSelectedUser] =
         useState<RedeemRequest | null>(null)
 
-    // =========================
-    // LOAD DATA
-    // =========================
+    const [error, setError] = useState<string | null>(null)
+
     const loadData = async () => {
         try {
             setLoading(true)
-
-            const res =
-                await getRedeemRequests(
-                    status,
-                    page,
-                    limit
-                )
-
+            setError(null)
+            const res = await getRedeemRequests(status, page, limit)
             setItems(res.items ?? [])
             setTotal(res.total ?? 0)
         } catch (error) {
-            console.error(error)
+            const msg = error instanceof Error ? error.message : "Không thể tải dữ liệu"
+            setError(msg)
         } finally {
             setLoading(false)
         }
@@ -99,18 +93,13 @@ export default function RedeemRequestTable() {
     // =========================
     const handleApprove = async () => {
         if (!approveId) return
-
         try {
             setSubmitting(true)
-
             await approveRedeemRequest(approveId)
-
             setApproveId(null)
-
             await loadData()
         } catch (error) {
-            console.error(error)
-            alert("Approve failed")
+            alert(error instanceof Error ? error.message : "Approve failed")
         } finally {
             setSubmitting(false)
         }
@@ -124,21 +113,14 @@ export default function RedeemRequestTable() {
             alert("Vui lòng nhập lý do từ chối")
             return
         }
-
         try {
             setSubmitting(true)
-
             await rejectRedeemRequest(rejectId, rejectReason)
-
-            sessionStorage.removeItem("rewards")
-
             setRejectId(null)
             setRejectReason("")
-
             await loadData()
         } catch (error) {
-            console.error(error)
-            alert("Reject failed")
+            alert(error instanceof Error ? error.message : "Reject failed")
         } finally {
             setSubmitting(false)
         }
@@ -151,6 +133,20 @@ export default function RedeemRequestTable() {
         return (
             <div className="bg-white rounded-2xl p-6 text-center text-gray-500">
                 Đang tải dữ liệu...
+            </div>
+        )
+    }
+
+    if (error) {
+        return (
+            <div className="bg-white rounded-2xl p-6 text-center">
+                <p className="text-red-500 mb-2 text-sm">{error}</p>
+                <button
+                    onClick={loadData}
+                    className="px-4 py-2 bg-red-100 rounded-lg text-red-600 text-sm"
+                >
+                    Thử lại
+                </button>
             </div>
         )
     }

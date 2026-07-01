@@ -1,6 +1,6 @@
-// src/app/api/admin/export-stats/route.ts
 import { NextRequest, NextResponse } from "next/server"
 import ExcelJS from "exceljs"
+import { requireAdmin, adminResponse } from "@/lib/admin-middleware"
 
 interface ExportRedeemItem {
     uid: string
@@ -15,6 +15,7 @@ interface ExportRedeemItem {
 }
 
 export async function GET(req: NextRequest) {
+    try { await requireAdmin(req); } catch { return adminResponse("Unauthorized", 401); }
     const { searchParams } = new URL(req.url)
     const page = Number(searchParams.get("page") || 1)
     const limit = Number(searchParams.get("limit") || 10)
@@ -43,7 +44,7 @@ export async function GET(req: NextRequest) {
         "Quà tặng": item.reward_name,
         "Số lượng": item.quantity,
         "Điểm tiêu": item.required_points * item.quantity,
-        "Ngày đổi": new Date(item.created_at).toLocaleString("vi-VN"),
+        "Ngày tạo": new Date(item.created_at).toLocaleDateString("vi-VN"),
     }))
 
     const workbook = new ExcelJS.Workbook()
@@ -59,7 +60,7 @@ export async function GET(req: NextRequest) {
         { header: "Quà tặng", key: "Quà tặng" },
         { header: "Số lượng", key: "Số lượng" },
         { header: "Điểm tiêu", key: "Điểm tiêu" },
-        { header: "Ngày đổi", key: "Ngày đổi" },
+        { header: "Ngày tạo", key: "Ngày tạo" },
     ]
 
     worksheet.addRows(rows)

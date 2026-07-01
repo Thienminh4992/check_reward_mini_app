@@ -65,15 +65,17 @@ export default function ApprovedRedeemStatsTable() {
     )
 
     return (
-        <div className="space-y-2">
+        <div className="space-y-3">
             {/* ACTIONS */}
-            <div className="flex justify-end">
-                <button
-                    onClick={exportExcel}
-                    className=" h-10 px-4 rounded-xl bg-green-500 hover:bg-green-600 text-white text-[12px]
-                    font-medium shadow-sm transition">
-                    Xuất Excel
-                </button>
+            <div className="bg-white rounded-2xl p-3 shadow-sm">
+                <div className="flex justify-end">
+                    <button
+                        onClick={exportExcel}
+                        className="h-10 px-4 rounded-xl bg-green-500 hover:bg-green-600 text-white text-[12px] font-medium transition"
+                    >
+                        Xuất Excel
+                    </button>
+                </div>
             </div>
             {/* TABLE */}
             <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
@@ -108,6 +110,10 @@ export default function ApprovedRedeemStatsTable() {
                             <th className="text-left px-3 py-2.5 font-medium">
                                 Điểm
                             </th>
+
+                            <th className="text-left px-3 py-2.5 font-medium">
+                                Ngày tạo
+                            </th>
                         </tr>
                         </thead>
 
@@ -117,7 +123,7 @@ export default function ApprovedRedeemStatsTable() {
                             <tr>
                                 <td
                                     colSpan={
-                                        7
+                                        8
                                     }
                                     className="text-center py-10 text-gray-400 text-[12px]"
                                 >
@@ -177,6 +183,10 @@ export default function ApprovedRedeemStatsTable() {
                                                     {item.required_points *
                                                         item.quantity}
                                                 </span>
+                                        </td>
+
+                                        <td className="px-3 py-2.5 text-gray-600">
+                                            {new Date(item.created_at).toLocaleDateString("vi-VN")}
                                         </td>
                                     </tr>
                                 )

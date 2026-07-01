@@ -115,34 +115,25 @@ export default function UserManagementTable() {
     }
 
     async function handleCreateUser() {
+        if (!newUser.uid.trim()) { alert("Vui lòng nhập UID"); return; }
+        if (!newUser.name.trim()) { alert("Vui lòng nhập tên"); return; }
+        if (!newUser.telegram_id.trim()) { alert("Vui lòng nhập Telegram ID"); return; }
+        if (isNaN(Number(newUser.telegram_id))) { alert("Telegram ID phải là số"); return; }
+        if (!newUser.password || newUser.password.length < 6) { alert("Mật khẩu tối thiểu 6 ký tự"); return; }
+
         try {
             setLoading(true)
-
             await createUser({
                 uid: newUser.uid,
                 name: newUser.name,
-                telegram_id: Number(
-                    newUser.telegram_id
-                ),
+                telegram_id: Number(newUser.telegram_id),
                 password: newUser.password,
             })
-
             setShowCreate(false)
-
-            setNewUser({
-                uid: "",
-                name: "",
-                telegram_id: "",
-                password: "",
-            })
-
+            setNewUser({ uid: "", name: "", telegram_id: "", password: "" })
             await loadUsers()
         } catch (error) {
-            alert(
-                error instanceof Error
-                    ? error.message
-                    : "Create failed"
-            )
+            alert(error instanceof Error ? error.message : "Create failed")
         } finally {
             setLoading(false)
         }
@@ -154,68 +145,71 @@ export default function UserManagementTable() {
     )
 
     return (
-        <div className="space-y-2">
-            {/* SEARCH */}
-            <div className="flex gap-2">
-                <input
-                    value={uid}
-                    onChange={(e) =>
-                        setUid(e.target.value)
-                    }
-                    placeholder="Tìm theo UID..."
-                    className="
-                        flex-1
-                        h-10
-                        px-4
-                        rounded-xl
-                        border
-                        border-gray-200
-                        text-sm
-                        outline-none
-                        focus:border-blue-400
-                    "
-                />
+        <div className="space-y-3">
+            {/* SEARCH & ACTIONS */}
+            <div className="bg-white rounded-2xl p-3 shadow-sm">
+                <div className="flex gap-2">
+                    <input
+                        value={uid}
+                        onChange={(e) =>
+                            setUid(e.target.value)
+                        }
+                        placeholder="Tìm theo UID..."
+                        className="
+                            flex-1
+                            h-10
+                            px-4
+                            rounded-xl
+                            border
+                            border-gray-200
+                            text-sm
+                            outline-none
+                            focus:border-blue-400
+                        "
+                    />
 
-                <button
-                    onClick={handleSearch}
-                    className="
-                        h-10
-                        px-4
-                        rounded-xl
-                        bg-blue-500
-                        hover:bg-blue-600
-                        text-white
-                        text-sm
-                        font-medium
-                        transition
-                    "
-                >
-                    Tìm
-                </button>
+                    <button
+                        onClick={handleSearch}
+                        className="
+                            h-10
+                            px-4
+                            rounded-xl
+                            bg-blue-500
+                            hover:bg-blue-600
+                            text-white
+                            text-sm
+                            font-medium
+                            transition
+                        "
+                    >
+                        Tìm
+                    </button>
 
-                <button
-                    onClick={() =>
-                        setShowCreate(true)
-                    }
-                    className="
-                        h-10
-                        px-4
-                        rounded-xl
-                        bg-green-500
-                        hover:bg-green-600
-                        text-white
-                        text-sm
-                        font-medium
-                        transition
-                    "
-                >
-                    + Thêm user
-                </button>
+                    <button
+                        onClick={() =>
+                            setShowCreate(true)
+                        }
+                        className="
+                            h-10
+                            px-4
+                            rounded-xl
+                            bg-green-500
+                            hover:bg-green-600
+                            text-white
+                            text-sm
+                            font-medium
+                            transition
+                        "
+                    >
+                        + Thêm user
+                    </button>
+                </div>
             </div>
 
             {/* TABLE */}
-            <div className="overflow-x-auto rounded-2xl border border-gray-100">
-                <table className="w-full text-sm">
+            <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full text-sm">
                     <thead className="border-b bg-gray-50">
                     <tr className="text-gray-500">
                         <th className="text-left px-3 py-3 font-semibold">
@@ -356,88 +350,87 @@ export default function UserManagementTable() {
                     )}
                     </tbody>
                 </table>
+                </div>
             </div>
 
             {/* PAGINATION */}
-            <div className="flex items-center justify-between pt-2">
-                <button
-                    onClick={() =>
-                        setPage((prev) =>
-                            Math.max(prev - 1, 1)
-                        )
-                    }
-                    disabled={page === 1}
-                    className={`
-                        px-4 py-2 rounded-xl text-sm font-medium transition
-                        ${
-                        page === 1
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : "bg-blue-500 text-white hover:bg-blue-600"
-                    }
-                    `}
-                >
-                    ←
-                </button>
-
-                <span className="text-sm text-gray-500 font-medium">
-                    {page} / {totalPages}
-                </span>
-
-                <button
-                    onClick={() =>
-                        setPage((prev) =>
-                            Math.min(
-                                prev + 1,
-                                totalPages
+            <div className="bg-white rounded-2xl p-3 shadow-sm">
+                <div className="flex items-center justify-between">
+                    <button
+                        onClick={() =>
+                            setPage((prev) =>
+                                Math.max(prev - 1, 1)
                             )
-                        )
-                    }
-                    disabled={
-                        page >= totalPages
-                    }
-                    className={`
-                        px-4 py-2 rounded-xl text-sm font-medium transition
-                        ${
-                        page >= totalPages
-                            ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                            : "bg-blue-500 text-white hover:bg-blue-600"
-                    }
-                    `}
-                >
-                    →
-                </button>
+                        }
+                        disabled={page === 1}
+                        className={`
+                            px-4 py-2 rounded-xl text-sm font-medium transition
+                            ${
+                            page === 1
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                : "bg-blue-500 text-white hover:bg-blue-600"
+                            }
+                        `}
+                    >
+                        ← Trước
+                    </button>
+
+                    <span className="text-sm text-gray-500 font-medium">
+                        Trang {page} / {totalPages}
+                    </span>
+
+                    <button
+                        onClick={() =>
+                            setPage((prev) =>
+                                Math.min(
+                                    prev + 1,
+                                    totalPages
+                                )
+                            )
+                        }
+                        disabled={
+                            page >= totalPages
+                        }
+                        className={`
+                            px-4 py-2 rounded-xl text-sm font-medium transition
+                            ${
+                            page >= totalPages
+                                ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                : "bg-blue-500 text-white hover:bg-blue-600"
+                            }
+                        `}
+                    >
+                        Sau →
+                    </button>
+                </div>
             </div>
 
             {/* CREATE MODAL */}
             {showCreate && (
                 <div
-                    className="
-            fixed inset-0 z-50
-            bg-black/40
-            flex items-center justify-center
-            p-4
-        "
+                    className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
                     onClick={() => setShowCreate(false)}
                 >
                     <div
-                        className="
-                bg-white
-                rounded-3xl
-                p-5
-                w-full
-                max-w-md
-                max-h-[90vh]
-                overflow-y-auto
-            "
+                        className="bg-white w-full max-w-md rounded-2xl p-4 shadow-xl"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h2 className="text-lg font-bold mb-5 text-blue-500 text-center">
-                            THÊM USER
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => setShowCreate(false)}
+                                className="text-gray-400 hover:text-gray-600 text-sm"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <h2 className="text-base font-semibold text-gray-800 text-center mt-2">
+                            THÊM USER MỚI
                         </h2>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3 mt-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     UID
                                 </label>
                                 <input
@@ -446,12 +439,12 @@ export default function UserManagementTable() {
                                     onChange={(e) =>
                                         setNewUser({ ...newUser, uid: e.target.value })
                                     }
-                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-blue-400"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Tên
                                 </label>
                                 <input
@@ -460,12 +453,12 @@ export default function UserManagementTable() {
                                     onChange={(e) =>
                                         setNewUser({ ...newUser, name: e.target.value })
                                     }
-                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-blue-400"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Telegram ID
                                 </label>
                                 <input
@@ -474,30 +467,30 @@ export default function UserManagementTable() {
                                     onChange={(e) =>
                                         setNewUser({ ...newUser, telegram_id: e.target.value })
                                     }
-                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-blue-400"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-500 mb-1">
-                                    Password
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
+                                    Mật khẩu
                                 </label>
                                 <input
                                     type="password"
-                                    placeholder="Password"
+                                    placeholder="Mật khẩu (tối thiểu 6 ký tự)"
                                     value={newUser.password}
                                     onChange={(e) =>
                                         setNewUser({ ...newUser, password: e.target.value })
                                     }
-                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-blue-400"
                                 />
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-2 mt-5">
+                        <div className="mt-5 flex gap-2">
                             <button
                                 onClick={() => setShowCreate(false)}
-                                className="px-4 py-2 rounded-xl bg-gray-100 text-sm"
+                                className="flex-1 rounded-xl border border-gray-200 bg-gray-100 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
                             >
                                 Hủy
                             </button>
@@ -505,7 +498,7 @@ export default function UserManagementTable() {
                             <button
                                 disabled={loading}
                                 onClick={handleCreateUser}
-                                className="px-4 py-2 rounded-xl bg-blue-500 text-white text-sm disabled:opacity-50"
+                                className="flex-1 rounded-xl bg-blue-500 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
                             >
                                 {loading ? "Đang tạo..." : "Tạo user"}
                             </button>
@@ -517,50 +510,47 @@ export default function UserManagementTable() {
             {/* EDIT MODAL */}
             {showEdit && editUser && (
                 <div
-                    className="
-                        fixed inset-0 z-50
-                        bg-black/40
-                        flex items-center justify-center
-                        p-4
-                    "
+                    className="fixed inset-0 z-50 bg-black/50 flex items-center justify-center px-4"
                     onClick={() => {
                         setShowEdit(false)
                         setEditUser(null)
                     }}
                 >
                     <div
-                        className="
-                bg-white
-                rounded-3xl
-                p-5
-                w-full
-                max-w-md
-                max-h-[90vh]
-                overflow-y-auto
-            "
+                        className="bg-white w-full max-w-md rounded-2xl p-4 shadow-xl"
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h2 className="text-lg font-bold mb-5 text-center text-blue-500">
+                        <div className="flex justify-end">
+                            <button
+                                onClick={() => {
+                                    setShowEdit(false)
+                                    setEditUser(null)
+                                }}
+                                className="text-gray-400 hover:text-gray-600 text-sm"
+                            >
+                                ✕
+                            </button>
+                        </div>
+
+                        <h2 className="text-base font-semibold text-gray-800 text-center mt-2">
                             CHỈNH SỬA USER
                         </h2>
 
-                        <div className="space-y-4">
+                        <div className="space-y-3 mt-4">
                             <div>
-                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     UID
                                 </label>
                                 <input
                                     placeholder="UID"
                                     value={editUser.uid}
-                                    onChange={(e) =>
-                                        setEditUser({ ...editUser, uid: e.target.value })
-                                    }
-                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                    disabled
+                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm bg-gray-100 text-gray-500 cursor-not-allowed"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Tên
                                 </label>
                                 <input
@@ -569,12 +559,12 @@ export default function UserManagementTable() {
                                     onChange={(e) =>
                                         setEditUser({ ...editUser, name: e.target.value })
                                     }
-                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-blue-400"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Telegram ID
                                 </label>
                                 <input
@@ -583,20 +573,23 @@ export default function UserManagementTable() {
                                     onChange={(e) =>
                                         setEditUser({ ...editUser, telegram_id: e.target.value })
                                     }
-                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-blue-400"
                                 />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-medium text-gray-500 mb-1">
+                                <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Quyền
                                 </label>
                                 <select
                                     value={editUser.role}
-                                    onChange={(e) =>
-                                        setEditUser({ ...editUser, role: e.target.value })
-                                    }
-                                    className="w-full h-11 border rounded-xl px-4 text-sm"
+                                    onChange={(e) => {
+                                        if (e.target.value === "admin" && editUser.role !== "admin") {
+                                            if (!confirm(`Cảnh báo: Nâng quyền "${editUser.name}" thành admin.`)) return;
+                                        }
+                                        setEditUser({ ...editUser, role: e.target.value });
+                                    }}
+                                    className="w-full rounded-xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-blue-400"
                                 >
                                     <option value="user">user</option>
                                     <option value="admin">admin</option>
@@ -604,13 +597,13 @@ export default function UserManagementTable() {
                             </div>
                         </div>
 
-                        <div className="flex justify-end gap-2 mt-5">
+                        <div className="mt-5 flex gap-2">
                             <button
                                 onClick={() => {
                                     setShowEdit(false)
                                     setEditUser(null)
                                 }}
-                                className="px-4 py-2 rounded-xl bg-gray-100 text-sm"
+                                className="flex-1 rounded-xl border border-gray-200 bg-gray-100 py-2.5 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
                             >
                                 Hủy
                             </button>
@@ -618,7 +611,7 @@ export default function UserManagementTable() {
                             <button
                                 disabled={loading}
                                 onClick={handleUpdateUser}
-                                className="px-4 py-2 rounded-xl bg-blue-500 text-white text-sm disabled:opacity-50"
+                                className="flex-1 rounded-xl bg-blue-500 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-600 disabled:opacity-50"
                             >
                                 {loading ? "Đang lưu..." : "Lưu"}
                             </button>

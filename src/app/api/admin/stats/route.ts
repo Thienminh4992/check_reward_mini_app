@@ -1,13 +1,9 @@
-import {
-    NextRequest,
-    NextResponse,
-} from "next/server"
-
+import { NextRequest, NextResponse } from "next/server"
 import { userService } from "@/services/user.service"
+import { requireAdmin, adminResponse } from "@/lib/admin-middleware"
 
-export async function GET(
-    req: NextRequest
-) {
+export async function GET(req: NextRequest) {
+    try { await requireAdmin(req); } catch { return adminResponse("Unauthorized", 401); }
     try {
         const page = Number(
             req.nextUrl.searchParams.get(

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
 import { userService } from "@/services/user.service"
+import { requireAdmin, adminResponse } from "@/lib/admin-middleware"
 
 export async function GET(req: NextRequest) {
+    try { await requireAdmin(req); } catch { return adminResponse("Unauthorized", 401); }
     try {
         const uid =
             req.nextUrl.searchParams.get("uid") || ""
@@ -32,6 +34,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+    try { await requireAdmin(req); } catch { return adminResponse("Unauthorized", 401); }
     try {
         const body = await req.json()
 

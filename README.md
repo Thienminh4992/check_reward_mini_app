@@ -7,6 +7,7 @@
 ## 📋 Mục lục
 
 - [Tính năng](#-tính-năng)
+- [Bảo mật Admin](#-bảo-mật-admin)
 - [Công nghệ](#-công-nghệ)
 - [Yêu cầu hệ thống](#-yêu-cầu-hệ-thống)
 - [Cài đặt](#-cài-đặt)
@@ -35,6 +36,14 @@
 - **Quản lý quà tặng** — Thêm, sửa, xóa, ẩn quà tặng
 - **Thống kê** — Xem danh sách giao dịch đổi quà đã được duyệt
 - **Import Volume** — Import volume giao dịch từ file CSV (tự động cộng dồn theo UID)
+
+### 🔐 Bảo mật Admin
+
+- **Middleware Protection** — Tất cả admin API routes được bảo vệ bởi [`admin-middleware.ts`](src/lib/admin-middleware.ts)
+- **Role Check** — Kiểm tra admin role trước khi thực hiện bất kỳ thao tác nào
+- **Input Validation** — Validate dữ liệu đầu vào khi tạo/sửa user
+- **Confirmation Dialogs** — Cảnh báo khi nâng quyền user lên admin
+- **UID Protection** — UID không thể chỉnh sửa sau khi tạo
 
 ---
 
@@ -405,6 +414,7 @@ check_reward_mini_app/
 │   ├── lib/                       # Core utilities
 │   │   ├── db.ts                  # PG connection pool
 │   │   ├── auth.ts                # JWT sign/verify
+│   │   ├── admin-middleware.ts    # Admin role check (requireAdmin)
 │   │   ├── telegram.ts            # Telegram initData verify
 │   │   ├── fam-verify.ts          # FAM verification
 │   │   ├── password.ts            # Password hash/verify

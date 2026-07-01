@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { userService } from "@/services/user.service";
+import { requireAdmin, adminResponse } from "@/lib/admin-middleware";
 
 export async function POST(
     req: NextRequest,
@@ -7,9 +8,9 @@ export async function POST(
         params: Promise<{ id: string }>;
     }
 ) {
+    try { await requireAdmin(req); } catch { return adminResponse("Unauthorized", 401); }
     try {
         const { id } = await context.params;
-
         const body = await req.json();
 
         await userService.rejectRequest(
