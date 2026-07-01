@@ -5,9 +5,11 @@ import Header from "@/components/Header"
 import RedeemRequestTable from "@/components/RedeemRequestTable"
 import UserManagementTable from "@/components/UserManagementTable"
 import ApprovedRedeemStatsTable from "@/components/ApprovedRedeemStatsTable"
-import ImportVolumeTab from "@/components/ImportVolumeTab";
+import ImportVolumeTab from "@/components/ImportVolumeTab"
+import FamUsersTab from "@/components/FamUsersTab"
+
 // ─── Tab types ────────────────────────────────────────────────────────────────
-type TabId = "redeem" | "users" | "stats" | "import"
+type TabId = "redeem" | "users" | "stats" | "import" | "fam-users"
 
 interface Tab {
     id: TabId
@@ -19,14 +21,15 @@ const TABS: Tab[] = [
     { id: "redeem", label: "Duyệt quà", icon: "🎁" },
     { id: "users", label: "Quản lý User", icon: "👤" },
     { id: "stats", label: "Danh sách đổi quà", icon: "📊" },
-    { id: "import", label: "Import Volume CSV", icon: "📥" },
+    { id: "import", label: "Import Volume", icon: "📥" },
+    { id: "fam-users", label: "Fam Users", icon: "👥" },
 ]
 
 // ─── Placeholder content ─────────────────────────────────────────────────────
 function PlaceholderTab({
-                            label,
-                            icon,
-                        }: {
+    label,
+    icon,
+}: {
     label: string
     icon: string
 }) {
@@ -60,8 +63,9 @@ export default function AdminPage() {
 
             {/* ── PHẦN 1: Tab navigation ── */}
             <div className="mx-4 mt-4">
-                <div className="bg-white rounded-2xl shadow-sm p-4">
-                    <div className="grid grid-cols-4 gap-2">
+                <div className="bg-white rounded-2xl shadow-sm p-3">
+                    {/* Use flex with equal flex-1 to ensure 5 tabs on one row */}
+                    <div className="flex flex-nowrap gap-2">
                         {TABS.map((tab) => {
                             const isActive =
                                 activeTab === tab.id
@@ -73,8 +77,8 @@ export default function AdminPage() {
                                         setActiveTab(tab.id)
                                     }
                                     className={`
-                                        flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl
-                                        text-xs font-medium transition-all duration-150
+                                        flex-1 flex flex-col items-center gap-0.5 py-2.5 rounded-xl
+                                        text-[11px] font-medium transition-all duration-150
                                         ${
                                         isActive
                                             ? "bg-blue-50 text-blue-600 shadow-sm ring-1 ring-blue-200"
@@ -82,11 +86,11 @@ export default function AdminPage() {
                                     }
                                     `}
                                 >
-                                    <span className="text-xl">
+                                    <span className="text-base">
                                         {tab.icon}
                                     </span>
 
-                                    <span className="text-center leading-tight">
+                                    <span className="text-center leading-tight truncate w-full">
                                         {tab.label}
                                     </span>
                                 </button>
@@ -115,6 +119,12 @@ export default function AdminPage() {
                 {activeTab === "import" && (
                     <div className="bg-white rounded-2xl shadow-sm p-4">
                         <ImportVolumeTab />
+                    </div>
+                )}
+
+                {activeTab === "fam-users" && (
+                    <div className="bg-white rounded-2xl shadow-sm p-4">
+                        <FamUsersTab />
                     </div>
                 )}
             </div>
