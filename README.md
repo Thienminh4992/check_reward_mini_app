@@ -36,6 +36,8 @@
 - **Quản lý quà tặng** — Thêm, sửa, xóa, ẩn quà tặng
 - **Thống kê** — Xem danh sách giao dịch đổi quà đã được duyệt
 - **Import Volume** — Import volume giao dịch từ file CSV (tự động cộng dồn theo UID)
+- **Quản lý Fam Users** — Import danh sách FAM users từ CSV, xem/danh sách, xóa FAM users
+- **Export Excel** — Xuất thống kê đổi quà ra file Excel
 
 ### 🔐 Bảo mật Admin
 
@@ -101,7 +103,9 @@ cp .env.example .env.local
 
 ### 4. Thiết lập Database
 
-Chạy các câu SQL trong [`schema_database/schema.sql`](schema_database/schema.sql) để tạo bảng.
+Chạy các câu SQL trong [`sql/migrations/`](sql/migrations/) để tạo bảng.
+
+> **Lưu ý:** Sử dụng migration files trong `sql/migrations/` thay vì `schema_database/schema.sql`.
 
 ### 5. Chạy development server
 
@@ -226,10 +230,11 @@ NODE_ENV=development
 
 | Cột | Kiểu | Mô tả |
 |---|---|---|
-| `uid` | VARCHAR | UID BingX |
+| `uid` | VARCHAR (PK) | UID BingX |
 | `email` | VARCHAR | Email BingX |
 | `telegram_account` | VARCHAR | Tài khoản Telegram |
 | `discord_account` | VARCHAR | Tài khoản Discord |
+| `created_at` | TIMESTAMP | Thời gian tạo |
 
 ---
 
@@ -281,8 +286,11 @@ NODE_ENV=development
 | `PUT` | `/api/admin/rewards/:id` | Cập nhật quà |
 | `DELETE` | `/api/admin/rewards/:id` | Ẩn quà (soft delete) |
 | `GET` | `/api/admin/stats` | Thống kê đã duyệt |
-| `GET` | `/api/admin/export-stats` | Export thống kê |
+| `GET` | `/api/admin/export-stats` | Export thống kê Excel |
 | `POST` | `/api/admin/import-volume` | Import volume từ CSV |
+| `GET` | `/api/admin/fam-users` | Danh sách FAM users (pagination, search) |
+| `POST` | `/api/admin/fam-users/import` | Import FAM users từ CSV |
+| `DELETE` | `/api/admin/fam-users/:uid` | Xóa FAM user |
 
 ---
 
@@ -368,79 +376,126 @@ Lấy volume từ user_volume_agg
     → available_point = earned_point - redeemed_point
 ```
 
+### 7. Import FAM Users từ CSV
+
+```
+Admin upload file CSV (định dạng: email;uid;telegram_account;discord_account)
+  → Parse CSV (delimiter: ;)
+  → Duyệt qua từng row
+  → Bỏ qua row nếu uid trống
+  → Upsert vào fam_users (ON CONFLICT uid → UPDATE)
+  → Trả về: { inserted, skipped, updated }
+```
+
 ---
 
 ## 📁 Cấu trúc dự án
 
 ```
 check_reward_mini_app/
-├── prisma/
-│   └── schema.prisma              # Prisma config (PostgreSQL)
-├── schema_database/
-│   └── schema.sql                 # Notes DB schema
+├── sql/
+│   └── migrations/                    # Database migration files
+│       ├── 001_auth_fam_users.sql     # FAM users table
+│       ├── 001_create_users_table.sql # Users table
+│       ├── 002_add_auth_columns.sql   # Auth columns
+│       ├── 003_create_fam_users_table.sql
+│       ├── 004_create_rewards_table.sql
+│       ├── 005_create_redeem_requests_table.sql
+│       ├── 006_create_user_points_history.sql
+│       ├── 007_create_user_volume_agg.sql
+│       ├── 008_add_missing_user_columns.sql
+│       ├── 009_add_redeem_admin_note.sql
+│       ├── 010_add_unique_user_reward.sql
+│       ├── 011_create_schema_version.sql
+│       └── 012_seed_fam_users.sql
 ├── src/
 │   ├── app/
-│   │   ├── layout.tsx             # Root layout (UserProvider, BottomNav)
-│   │   ├── page.tsx               # Redirect / → /login
-│   │   ├── login/page.tsx         # Trang đăng nhập
-│   │   ├── register/page.tsx      # Trang đăng ký
-│   │   ├── home/page.tsx          # Dashboard chính
-│   │   ├── admin/page.tsx         # Trang admin
-│   │   ├── reward/page.tsx        # Trang reward
-│   │   ├── api/                   # API Routes
-│   │   │   ├── auth/              # Login, Register, Logout
-│   │   │   ├── users/             # Profile, Password, Avatar
-│   │   │   ├── rewards/           # Danh sách quà
-│   │   │   ├── redeem/            # Tạo yêu cầu đổi quà
-│   │   │   ├── upload/            # Upload ảnh
-│   │   │   └── admin/             # Admin endpoints
-│   │   └── services/              # Client-side API services
+│   │   ├── layout.tsx                 # Root layout (UserProvider, BottomNav)
+│   │   ├── page.tsx                   # Redirect / → /login
+│   │   ├── login/page.tsx             # Trang đăng nhập
+│   │   ├── register/page.tsx          # Trang đăng ký
+│   │   ├── home/page.tsx              # Dashboard chính
+│   │   ├── admin/page.tsx             # Trang admin (tabs: redeem, users, stats, import, fam)
+│   │   ├── reward/page.tsx            # Trang reward
+│   │   ├── api/                       # API Routes
+│   │   │   ├── auth/                  # Login, Register, Logout
+│   │   │   ├── users/                 # Profile, Password, Avatar
+│   │   │   ├── rewards/               # Danh sách quà
+│   │   │   ├── redeem/                # Tạo yêu cầu đổi quà
+│   │   │   ├── upload/                # Upload ảnh
+│   │   │   └── admin/                 # Admin endpoints
+│   │   │       ├── redeem-requests/   # Quản lý yêu cầu đổi quà
+│   │   │       ├── users/             # Quản lý người dùng
+│   │   │       ├── rewards/           # Quản lý quà tặng
+│   │   │       ├── stats/             # Thống kê
+│   │   │       ├── export-stats/      # Export Excel
+│   │   │       ├── import-volume/     # Import volume CSV
+│   │   │       └── fam-users/         # Quản lý FAM users
+│   │   └── services/                  # Client-side API services
 │   │       ├── auth.ts
 │   │       ├── reward.ts
 │   │       ├── redeem.ts
 │   │       └── admin.ts
-│   ├── components/                # UI Components
+│   ├── components/                    # UI Components
 │   │   ├── Header.tsx
 │   │   ├── BottomNav.tsx
 │   │   ├── UserCard.tsx
 │   │   ├── RewardList.tsx
+│   │   ├── RewardList_no_admin_reward.tsx
 │   │   ├── RewardHistory.tsx
+│   │   ├── PointsCard.tsx
 │   │   ├── RedeemRequestTable.tsx
 │   │   ├── UserManagementTable.tsx
 │   │   ├── ApprovedRedeemStatsTable.tsx
-│   │   └── ImportVolumeTab.tsx
+│   │   ├── ImportVolumeTab.tsx
+│   │   └── FamUsersTab.tsx            # Tab quản lý FAM users
 │   ├── context/
-│   │   └── UserContext.tsx        # React Context (user state)
-│   ├── lib/                       # Core utilities
-│   │   ├── db.ts                  # PG connection pool
-│   │   ├── auth.ts                # JWT sign/verify
-│   │   ├── admin-middleware.ts    # Admin role check (requireAdmin)
-│   │   ├── telegram.ts            # Telegram initData verify
-│   │   ├── fam-verify.ts          # FAM verification
-│   │   ├── password.ts            # Password hash/verify
-│   │   ├── validators.ts          # Email, phone validation
-│   │   ├── repository.ts          # Repository pattern
-│   │   └── volume.repository.ts   # Volume upsert
-│   ├── services/                  # Server-side services
-│   │   ├── user.service.ts
-│   │   └── volume.service.ts
+│   │   └── UserContext.tsx            # React Context (user state)
+│   ├── lib/                           # Core utilities
+│   │   ├── db.ts                      # PG connection pool, query, execute, withTransaction
+│   │   ├── auth.ts                    # JWT sign/verify, getCurrentUser
+│   │   ├── admin-middleware.ts        # Admin role check (requireAdmin, adminResponse)
+│   │   ├── telegram.ts                # Telegram initData verify
+│   │   ├── fam-verify.ts              # FAM (BingX) account verification
+│   │   ├── password.ts                # Hash/verify password
+│   │   ├── validators.ts              # Email, phone validation
+│   │   ├── repository.ts              # Repository pattern — user, reward, redeem logic
+│   │   ├── volume.repository.ts       # Volume upsert logic
+│   │   ├── userFarm.repository.ts     # UserFarm repository
+│   │   └── helpers.ts
+│   ├── services/                      # Server-side services
+│   │   ├── user.service.ts            # Auth, profile, redeem, admin logic
+│   │   └── volume.service.ts          # Volume import service
 │   ├── types/
 │   │   ├── user.ts
-│   │   └── reward.ts
+│   │   ├── reward.ts
+│   │   ├── telegram.d.ts
+│   │   └── bcryptjs.d.ts
 │   ├── db/
-│   │   └── schema.ts              # DB entity types
+│   │   └── schema.ts                  # DB entity types
 │   └── middleware.ts
 ├── public/
 │   └── images/
 │       ├── avatar/
 │       └── rewards/
-├── plans/
-│   └── project-summary.md         # Chi tiết phân tích dự án
+├── plans/                             # Plans & code review docs
+│   ├── project-summary.md
+│   ├── admin-improvements.md
+│   ├── admin-improvements-simplified.md
+│   ├── home-improvements.md
+│   ├── fam-users-import-plan.md
+│   ├── code-review-issues.md
+│   └── home-improvements.md
+├── schema_database/
+│   └── schema.sql                     # Notes DB schema (legacy)
+├── .env.example                       # Environment variables template
 ├── Dockerfile
 ├── package.json
 ├── next.config.mjs
 ├── tsconfig.json
-└── tailwind.config.ts
+├── eslint.config.mjs
+├── postcss.config.mjs
+└── README.md
 ```
 
 ---
@@ -480,7 +535,7 @@ TELEGRAM_BOT_TOKEN=your-bot-token
 |---|---|
 | **Guest** | Chưa đăng nhập → Chỉ thấy trang login/register |
 | **User** | Đăng nhập → Dashboard, đổi quà, update profile |
-| **Admin** | Tất cả của User + trang admin (duyệt quà, quản lý user/rewards, import volume) |
+| **Admin** | Tất cả của User + trang admin (duyệt quà, quản lý user/rewards, import volume, FAM users) |
 
 ---
 
@@ -493,6 +548,9 @@ TELEGRAM_BOT_TOKEN=your-bot-token
 5. **Telegram verify**: UID đăng nhập phải khớp với Telegram đang mở mini app.
 6. **Soft delete**: Rewards bị "xóa" thực chất là set `is_active = false`.
 7. **Volume import**: Hỗ trợ định dạng số Việt Nam (dấu chấm = phân cách nghìn).
+8. **Admin Middleware**: Tất cả admin routes được bảo vệ bởi middleware, kiểm tra admin role.
+9. **UID Protection**: UID không thể chỉnh sửa sau khi tạo user.
+10. **FAM Import**: Import FAM users từ CSV với định dạng `email;uid;telegram_account;discord_account`, tự động upsert theo uid.
 
 ---
 

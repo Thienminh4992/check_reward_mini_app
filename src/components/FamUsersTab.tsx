@@ -15,6 +15,8 @@ interface ImportResult {
     inserted: number
     updated: number
     skipped: number
+    errors?: number
+    errorDetails?: string[]
 }
 
 export default function FamUsersTab() {
@@ -27,6 +29,7 @@ export default function FamUsersTab() {
     const [importResult, setImportResult] = useState<ImportResult | null>(null)
     const [importError, setImportError] = useState("")
     const [fileName, setFileName] = useState("")
+    const [importing, setImporting] = useState(false)
     const [editingUser, setEditingUser] = useState<FamUser | null>(null)
     const [showEditModal, setShowEditModal] = useState(false)
     const [showCreateModal, setShowCreateModal] = useState(false)
@@ -176,19 +179,24 @@ export default function FamUsersTab() {
             return
         }
 
+        setImporting(true)
         setImportError("")
         setImportResult(null)
 
         Papa.parse<Record<string, string>>(file, {
             header: true,
-            delimiter: ";",
+            delimiter: ",",
             skipEmptyLines: true,
             complete: async (parsed) => {
                 try {
+                    // Send as form data to API
+                    const formData = new FormData()
+                    formData.append("csv", file)
+                    formData.append("parsedData", JSON.stringify(parsed.data))
+
                     const res = await fetch("/api/admin/fam-users/import", {
                         method: "POST",
-                        headers: { "Content-Type": "application/json" },
-                        body: JSON.stringify({ rows: parsed.data }),
+                        body: formData,
                     })
 
                     const data = await res.json()
@@ -199,10 +207,13 @@ export default function FamUsersTab() {
                     }
                 } catch {
                     setImportError("Lỗi kết nối server")
+                } finally {
+                    setImporting(false)
                 }
             },
             error: () => {
                 setImportError("Không thể đọc file CSV")
+                setImporting(false)
             },
         })
     }
@@ -234,9 +245,9 @@ export default function FamUsersTab() {
 
     return (
         <div className="space-y-4">
-            {/* Toolbar */}
-            <div className="flex gap-2 items-center justify-between flex-nowrap">
-                {/* Search group - left side */}
+            {/* Toolbar - Mobile responsive */}
+            <div className="flex flex-col gap-2">
+                {/* Search group */}
                 <div className="flex gap-2 flex-1 min-w-0">
                     <input
                         type="text"
@@ -246,32 +257,31 @@ export default function FamUsersTab() {
                         onKeyDown={(e) => {
                             if (e.key === "Enter") handleSearch()
                         }}
-                        className="flex-1 min-w-[200px] rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
+                        className="flex-1 min-w-0 sm:min-w-[200px] rounded-xl border border-gray-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300"
                     />
                     <button
                         onClick={handleSearch}
                         className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap"
                     >
-                        Tìm kiếm
+                        Tìm
                     </button>
                 </div>
 
-                {/* Action buttons - right side */}
-                <div className="flex gap-2 items-center flex-shrink-0">
+                {/* Action buttons */}
+                <div className="flex gap-2">
                     <button
                         onClick={openCreateModal}
-                        className="bg-green-500 hover:bg-green text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap"
+                        className="flex-1 sm:flex-none bg-green-500 hover:bg-green text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap"
                     >
-                        + Thêm mới
+                        Thêm
                     </button>
                     <button
                         onClick={openImportModal}
-                        className="bg-green-500 hover:bg-green-600 text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap"
+                        className="flex-1 sm:flex-none bg-green-500 hover:bg-green-600 text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors whitespace-nowrap"
                     >
-                        Import CSV
+                        Import
                     </button>
                 </div>
-
             </div>
 
             {/* Table */}
@@ -383,9 +393,22 @@ export default function FamUsersTab() {
                 <div className="fixed inset-0 bg-black/30 flex items-center justify-center z-50 p-4">
                     <div className="bg-white rounded-2xl shadow-xl w-full max-w-md mx-auto p-6 space-y-4">
                         <h3 className="text-lg font-semibold">Import Fam Users từ CSV</h3>
-                        <p className="text-sm text-gray-500">
-                            Định dạng CSV: <code className="bg-gray-100 px-1 rounded">email;uid;telegram_account;discord_account</code>
-                        </p>
+                        <div className="space-y-2">
+                            <p className="text-sm text-gray-500">
+                                File CSV phải dùng dấu phẩy <code className="bg-gray-100 px-1 rounded">,</code> để phân cách cột
+                            </p>
+                            <p className="text-sm text-gray-500">
+                                CSV phải có cột <strong>uid</strong>. Các cột khác (tùy chọn):{" "}
+                                <code className="bg-gray-100 px-1 rounded">email</code>,{" "}
+                                <code className="bg-gray-100 px-1 rounded">telegram_account</code>,{" "}
+                                <code className="bg-gray-100 px-1 rounded">discord_account</code>
+                            </p>
+                            <p className="text-xs text-gray-400">
+                                Ví dụ định dạng:<br/>
+                                <code className="bg-gray-100 px-1 rounded">uid,email,telegram_account,discord_account</code><br/>
+                                <code className="bg-gray-100 px-1 rounded">SN,Submitted on,email,uid,telegram_account,discord_account,CHECKED,GHI CHÚ</code> (có cột thừa — tự bỏ qua)
+                            </p>
+                        </div>
 
                         {/* File input */}
                         <div
@@ -414,19 +437,33 @@ export default function FamUsersTab() {
 
                         {/* Result */}
                         {importResult && (
-                            <div className="bg-green-50 rounded-xl px-4 py-3 space-y-1">
-                                <p className="text-[12px] text-green-700 font-medium">
-                                    Import thành công
-                                </p>
-                                <p className="text-[12px] text-green-600">
-                                    ✅ Thêm mới: <strong>{importResult.inserted}</strong>
-                                </p>
-                                <p className="text-[12px] text-green-600">
-                                    🔄 Cập nhật: <strong>{importResult.updated}</strong>
-                                </p>
-                                <p className="text-[12px] text-gray-400">
-                                    ⏭ Bỏ qua: {importResult.skipped} dòng
-                                </p>
+                            <div className="space-y-2">
+                                <div className="bg-green-50 rounded-xl px-4 py-3 space-y-1">
+                                    <p className="text-[12px] text-green-700 font-medium">
+                                        Import thành công
+                                    </p>
+                                    <p className="text-[12px] text-green-600">
+                                        ✅ Thêm mới: <strong>{importResult.inserted}</strong>
+                                    </p>
+                                    <p className="text-[12px] text-green-600">
+                                        🔄 Cập nhật: <strong>{importResult.updated}</strong>
+                                    </p>
+                                    <p className="text-[12px] text-gray-400">
+                                        ⏭ Bỏ qua: {importResult.skipped} dòng
+                                    </p>
+                                </div>
+                                {importResult.errors && importResult.errors > 0 && (
+                                    <div className="bg-red-50 rounded-xl px-4 py-3 space-y-1">
+                                        <p className="text-[12px] text-red-700 font-medium">
+                                            Lỗi: {importResult.errors} dòng
+                                        </p>
+                                        {importResult.errorDetails?.map((detail, idx) => (
+                                            <p key={idx} className="text-[11px] text-red-600">
+                                                ⚠️ {detail}
+                                            </p>
+                                        ))}
+                                    </div>
+                                )}
                             </div>
                         )}
 
@@ -440,9 +477,14 @@ export default function FamUsersTab() {
                             </button>
                             <button
                                 onClick={handleImportFile}
-                                className="bg-blue-500 hover:bg-blue-600 text-white rounded-xl px-4 py-2 text-sm font-semibold transition-colors"
+                                disabled={importing}
+                                className={`rounded-xl px-4 py-2 text-sm font-semibold transition-colors ${
+                                    importing
+                                        ? "bg-gray-300 text-gray-500 cursor-not-allowed"
+                                        : "bg-blue-500 hover:bg-blue-600 text-white"
+                                }`}
                             >
-                                Import
+                                {importing ? "Đang xử lý..." : "Import"}
                             </button>
                         </div>
                     </div>

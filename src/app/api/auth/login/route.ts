@@ -93,12 +93,13 @@ export async function POST(req: NextRequest) {
             user: result.user,
         });
 
+        const isProd = process.env.NODE_ENV === "production";
         response.cookies.set("session_token", token, {
             httpOnly: true,
-            secure: true,
-            sameSite: "none",
+            secure: isProd,
+            sameSite: isProd ? "none" : "lax",
             path: "/",
-            maxAge: 60 * 15, // ← 15 phút tính bằng giây maxAge: 60 * 60 * 24 * 7,
+            maxAge: 60 * 30, // ← 15 phút tính bằng giây maxAge: 60 * 60 * 24 * 7,
         });
         return response;
     } catch (error) {

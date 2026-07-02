@@ -146,63 +146,74 @@ export default function UserManagementTable() {
 
     return (
         <div className="space-y-3">
-            {/* SEARCH & ACTIONS */}
+            {/* SEARCH & ACTIONS - Mobile responsive */}
             <div className="bg-white rounded-2xl p-3 shadow-sm">
-                <div className="flex gap-2">
-                    <input
-                        value={uid}
-                        onChange={(e) =>
-                            setUid(e.target.value)
-                        }
-                        placeholder="Tìm theo UID..."
-                        className="
-                            flex-1
-                            h-10
-                            px-4
-                            rounded-xl
-                            border
-                            border-gray-200
-                            text-sm
-                            outline-none
-                            focus:border-blue-400
-                        "
-                    />
+                <div className="flex flex-col gap-2">
+                    {/* Search group - input + Tìm button on same row */}
+                    <div className="flex gap-2 flex-1 min-w-0">
+                        <input
+                            value={uid}
+                            onChange={(e) =>
+                                setUid(e.target.value)
+                            }
+                            placeholder="Tìm theo UID..."
+                            className="
+                                flex-1
+                                h-10
+                                min-w-0
+                                sm:min-w-[200px]
+                                px-4
+                                rounded-xl
+                                border
+                                border-gray-200
+                                text-sm
+                                outline-none
+                                focus:border-blue-400
+                            "
+                        />
+                        <button
+                            onClick={handleSearch}
+                            className="
+                                h-10
+                                px-4
+                                rounded-xl
+                                bg-blue-500
+                                hover:bg-blue-600
+                                text-white
+                                text-sm
+                                font-medium
+                                transition
+                                whitespace-nowrap
+                            "
+                        >
+                            Tìm
+                        </button>
+                    </div>
 
-                    <button
-                        onClick={handleSearch}
-                        className="
-                            h-10
-                            px-4
-                            rounded-xl
-                            bg-blue-500
-                            hover:bg-blue-600
-                            text-white
-                            text-sm
-                            font-medium
-                            transition
-                        "
-                    >
-                        Tìm
-                    </button>
-
-                    <button
-                        onClick={() =>
-                            setShowCreate(true)
-                        }
-                        className="
-                            h-10
-                            px-4
-                            rounded-xl
-                            bg-green-500
-                            hover:bg-green-600
-                            text-white
-                            text-sm
-                            font-medium
-                            transition
-                        "
-                    >
-                        + Thêm user
-                    </button>
+                    {/* Action buttons - separate row below */}
+                    <div className="flex gap-2">
+                        <button
+                            onClick={() =>
+                                setShowCreate(true)
+                            }
+                            className="
+                                flex-1
+                                sm:flex-none
+                                h-10
+                                px-4
+                                rounded-xl
+                                bg-green-500
+                                hover:bg-green-600
+                                text-white
+                                text-sm
+                                font-medium
+                                transition
+                                whitespace-nowrap
+                            "
+                        >
+                            Thêm
+                        </button>
+                    </div>
                 </div>
             </div>
 

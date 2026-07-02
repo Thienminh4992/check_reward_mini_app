@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { useRouter } from "next/navigation"
 import Header from "@/components/Header"
 import RedeemRequestTable from "@/components/RedeemRequestTable"
 import UserManagementTable from "@/components/UserManagementTable"
@@ -54,8 +55,24 @@ function PlaceholderTab({
 
 // ─── Main Admin Page ──────────────────────────────────────────────────────────
 export default function AdminPage() {
+    const router = useRouter()
     const [activeTab, setActiveTab] =
         useState<TabId>("redeem")
+
+    // Check session on mount — redirect to /login if expired
+    useEffect(() => {
+        const checkSession = async () => {
+            try {
+                const res = await fetch("/api/users/me", { credentials: "include" })
+                if (!res.ok) {
+                    router.replace("/login")
+                }
+            } catch {
+                router.replace("/login")
+            }
+        }
+        void checkSession()
+    }, [router])
 
     return (
         <div className="min-h-screen bg-gray-50 flex flex-col">
