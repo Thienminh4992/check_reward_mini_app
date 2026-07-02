@@ -143,16 +143,12 @@ export default function HomePage() {
             })
         ) ?? [];
 
-    const redeemedRewardIds = useMemo(() => {
-        return new Set(
-            dashboard?.reward_history_items
-                ?.filter(
-                    (item) => item.source === "redeem"
-                )
-                ?.map((item) => item.reward_id)
-        );
+    // Chỉ disable rewards đã được ADMIN DUYỆT (approved)
+    // Reject không disable vì user có thể đổi lại
+    const approvedRewardIds = useMemo(() => {
+        return new Set(dashboard?.approved_reward_ids ?? []);
     }, [dashboard]);
-    // console.log("REDEEMEDREWARDIDS", redeemedRewardIds)
+    // console.log("APPROVED REWARD IDS", approvedRewardIds)
     if (!dashboard || !user) {
         return (
             <div className="h-screen flex flex-col bg-gray-100">
@@ -182,7 +178,7 @@ export default function HomePage() {
             <div className="flex-1 min-h-0 overflow-y-auto pb-20 overscroll-contain">
                 <RewardList
                     rewards={rewards}
-                    redeemedRewardIds={redeemedRewardIds}
+                    redeemedRewardIds={approvedRewardIds}
                     onReload={reloadDashboard}
                 />
             </div>

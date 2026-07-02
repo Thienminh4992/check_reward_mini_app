@@ -6,7 +6,6 @@ import { userRepository } from "@/lib/repository";
 import type { User } from "@/db/schema";
 import type { RewardHistoryItem } from "@/types/user";
 import {isValidEmail,isValidPhone,} from "@/lib/validators";
-import { DatabaseError } from "pg";
 export type UpdateProfileResult =
     | {status: "ok";user: User;}
     | {status: "invalid_name";}
@@ -211,9 +210,10 @@ export const userService = {
             console.log("avatar", user?.avatar_url);
             if (!user) throw new Error("User not found");
 
-            const [history, volumeData] = await Promise.all([
+            const [history, volumeData, approvedRewardIds] = await Promise.all([
                 userRepository.getRedeemedHistory(userId, client),
                 userRepository.getUserVolumeByUid(user.uid, client),
+                userRepository.getApprovedRewardIds(userId, client),
             ]);
 
             const volume = Math.round(Number(volumeData?.total_volume_usd || 0));
@@ -240,6 +240,7 @@ export const userService = {
                 history,
                 reward_history_items,
                 volume,
+                approved_reward_ids: approvedRewardIds.map(r => r.reward_id),
             };
         });
     },
@@ -284,6 +285,23 @@ export const userService = {
                 throw new Error("Not enough points");
             }
 
+            // Kiểm tra nếu user đã có request pending hoặc approved cho reward này
+            const existingRequests = await userRepository.getActiveRequestsByUserAndReward(
+                payload.user_id,
+                payload.reward_id,
+                client
+            );
+
+            if (existingRequests.length > 0) {
+                const lastRequest = existingRequests[0];
+                if (lastRequest.status === "approved") {
+                    throw new Error("Bạn đã nhận quà này rồi");
+                }
+                if (lastRequest.status === "pending") {
+                    throw new Error("Bạn đang có yêu cầu đổi quà này chờ xử lý");
+                }
+            }
+
             // Trừ stock an toàn
             const stockUpdated =
                 await userRepository.decreaseRewardStockSafe(
@@ -303,44 +321,31 @@ export const userService = {
                 client
             );
 
-            try {
-                // Tạo request đổi quà
-                const request =
-                    await userRepository.createRedeemRequest(
-                        {
-                            user_id: payload.user_id,
-                            reward_id: payload.reward_id,
-                            quantity: payload.quantity,
-                            status: "pending",
-                        },
-                        client
-                    );
-
-                // Lưu lịch sử điểm
-                await userRepository.insertPointHistory(
+            // Tạo request đổi quà
+            const request =
+                await userRepository.createRedeemRequest(
                     {
                         user_id: payload.user_id,
                         reward_id: payload.reward_id,
-                        points_change: -requiredPoints,
-                        source: "redeem",
-                        description: `Bạn đã yêu cầu đổi ${payload.quantity} ${reward.name}`,
+                        quantity: payload.quantity,
+                        status: "pending",
                     },
                     client
                 );
 
-                return request;
-            } catch (error: unknown) {
-                if (
-                    error instanceof DatabaseError &&
-                    error.code === "23505"
-                ) {
-                    throw new Error(
-                        "Bạn đã đổi quà này rồi"
-                    );
-                }
+            // Lưu lịch sử điểm
+            await userRepository.insertPointHistory(
+                {
+                    user_id: payload.user_id,
+                    reward_id: payload.reward_id,
+                    points_change: -requiredPoints,
+                    source: "redeem",
+                    description: `Bạn đã yêu cầu đổi ${payload.quantity} ${reward.name}`,
+                },
+                client
+            );
 
-                throw error;
-            }
+            return request;
         });
     },
 

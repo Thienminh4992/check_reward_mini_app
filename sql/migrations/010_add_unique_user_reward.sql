@@ -10,3 +10,5 @@
 -- Tạo UNIQUE constraint
 ALTER TABLE redeem_requests
     ADD CONSTRAINT unique_user_reward UNIQUE (user_id, reward_id);
+
+ALTER TABLE redeem_requests DROP CONSTRAINT IF EXISTS unique_user_reward;

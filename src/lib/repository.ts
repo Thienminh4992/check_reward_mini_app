@@ -336,6 +336,39 @@ export const userRepository = {
     },
 
     // =========================
+    // GET PENDING/APPROVED REQUESTS BY USER & REWARD
+    // =========================
+    getActiveRequestsByUserAndReward(
+        userId: string,
+        rewardId: string,
+        client?: PoolClient
+    ) {
+        return query<RedeemRequest>(
+            `
+        SELECT * FROM redeem_requests
+        WHERE user_id = $1 AND reward_id = $2 AND status IN ('pending', 'approved')
+        ORDER BY created_at DESC
+        `,
+            [userId, rewardId],
+            client
+        );
+    },
+
+    // =========================
+    // GET APPROVED REWARD IDS FOR A USER
+    // =========================
+    getApprovedRewardIds(userId: string, client?: PoolClient) {
+        return query<{ reward_id: string }>(
+            `
+        SELECT DISTINCT reward_id FROM redeem_requests
+        WHERE user_id = $1 AND status = 'approved'
+        `,
+            [userId],
+            client
+        );
+    },
+
+    // =========================
     // HISTORY
     // =========================
     insertPointHistory(data: {

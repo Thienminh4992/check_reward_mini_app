@@ -29,4 +29,5 @@ export interface UserDashboardResponse {
     user: User
     reward_history_items: RewardHistoryItem[]
     volume?: unknown
+    approved_reward_ids?: string[]
 }
